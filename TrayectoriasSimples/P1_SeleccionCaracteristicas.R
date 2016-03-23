@@ -8,10 +8,13 @@ normalize <- function(x) {
   maxAttr=apply(x, 2, max)
   x <- sweep(x, 2, minAttr, FUN="-") 
   x=sweep(x, 2,  maxAttr-minAttr, "/") 
-  x[is.nan(x)] = 0
+  x[is.nan(x)]<- 0
   return (x)
 } 
+#quitar colunmas que salen 0
+Aritmia=Aritmia[sapply(Aritmia, function(x) length(unique(x))>1)]
 
+#F(s)=alphaTA-(1-aplha)TR donde TR es treduccion (por ej alpha=0.8)
 nAritmia<-Aritmia[ ,-ncol(Aritmia)]
 
 nAritmia<-apply(nAritmia,2,normalize)
@@ -20,4 +23,6 @@ nAritmia<-apply(nAritmia,2,normalize)
 
 AritmiaNormalized<-data.frame(nAritmia,Aritmia$class)
 
+matrizSolucion<-matrix(0,nrow(Aritmia)/2,ncol(nAritmia))
 
+Aritmia[ ,]
