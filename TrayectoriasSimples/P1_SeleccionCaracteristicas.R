@@ -23,7 +23,40 @@ AritmiaNormalized<-data.frame(nAritmia,Aritmia$class)
 #deleting columns wich row's values are all the same
 AritmiaNormalized=AritmiaNormalized[sapply(AritmiaNormalized, function(x) length(unique(x))>1)]
 
-#creating feature representation matrix
-matrizSolucion<-matrix(0,nrow(Aritmia)/2,ncol(nAritmia))
+partitionDistribution <- function(partition) {
+  print(paste('Training: ', nrow(partition$training), 'instances'))
+  print(summary(partition$training$Aritmia.class) / nrow(partition$training) * 100) # Porcentaje de muestras por clase
+  print(paste('Test: ', nrow(partition$test), 'instances'))
+  print(summary(partition$test$Aritmia.class)  / nrow(partition$test) * 100)
+}
 
-Aritmia[ ,]
+# Particionamiento estratificado usando el paquete caret
+library(caret)
+
+
+set.seed(123456)
+indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = .50, list = FALSE)
+particion <- list(training=AritmiaNormalized[indices,], test=AritmiaNormalized[-indices,])
+training=AritmiaNormalized[indices,]
+test=AritmiaNormalized[-indices,]
+partitionDistribution(particion)
+
+# Creación de múltiples particiones
+folds <-createFolds(AritmiaNormalized$Aritmia.class, k = 10)
+particion <- lapply(folds, function(indices) list(training=iris[-indices,], test=iris[indices,]))
+partitionDistribution(particion$Fold04)
+
+
+# Control de parámetros de particionamiento durante el entrenamiento
+train10CV <- trainControl(method = "cv", number = 10)
+train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
+set.seed(12345)
+modelo<-train(Aritmia.class ~.,data=AritmiaNormalized,method="knn", tuneGrid=expand.grid(.k=3),trControl = train5x2)
+#cl <- factor(c(rep("s",25), rep("c",25), rep("v",25)))
+#modelo<-knn3Train(training,test,cl,k=3, prob=TRUE)
+modelo$results$Accuracy
+names(getModelInfo())
+pred<-predict(modelo, newdata=test)
+confusionMatrix(data = pred, test$Aritmia.class)
+
+
