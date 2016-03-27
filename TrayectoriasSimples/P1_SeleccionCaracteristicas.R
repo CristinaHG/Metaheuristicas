@@ -59,4 +59,25 @@ names(getModelInfo())
 pred<-predict(modelo, newdata=test)
 confusionMatrix(data = pred, test$Aritmia.class)
 
+#funcion aplicamodelo
+modelo <- function(x) { 
+
+  train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
+  set.seed(12345)
+  modelo<-train(Aritmia.class ~x,data=AritmiaNormalized,method="knn", tuneGrid=expand.grid(.k=3),trControl = train5x2)
+  return(modelo$results$Accuracy)
+}
+
+#algoritmo greedy
+greedy <- function(x) { 
+  selected<-as.vector(rep(0,ncol(AritmiaNormalized)))
+  
+  x <- as.matrix(as.numeric(x))
+  minAttr=apply(x, 2, min)
+  maxAttr=apply(x, 2, max)
+  x <- sweep(x, 2, minAttr, FUN="-") 
+  x=sweep(x, 2,  maxAttr-minAttr, "/") 
+  x[is.nan(x)]<- 0
+  return (x)
+} 
 
