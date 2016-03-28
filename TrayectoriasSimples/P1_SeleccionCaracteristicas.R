@@ -53,7 +53,7 @@ Do5x2cv<-function(x){
   return(modelo$results$Accuracy)
 }
 
-sapply(particion[[i]],Do5x2cv)
+sapply(particion[[i]][[i]],Do5x2cv)
 
 
 sapply(folds, function(i) table(AritmiaNormalized$Aritmia.class[i]))
