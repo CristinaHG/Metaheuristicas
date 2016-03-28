@@ -33,18 +33,44 @@ partitionDistribution <- function(partition) {
 # Particionamiento estratificado usando el paquete caret
 library(caret)
 
-
 set.seed(123456)
-indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = .50, list = FALSE)
+indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
 particion <- list(training=AritmiaNormalized[indices,], test=AritmiaNormalized[-indices,])
 training=AritmiaNormalized[indices,]
 test=AritmiaNormalized[-indices,]
 partitionDistribution(particion)
 
 # Creación de múltiples particiones
-folds <-createFolds(AritmiaNormalized$Aritmia.class, k = 10)
-particion <- lapply(folds, function(indices) list(training=iris[-indices,], test=iris[indices,]))
-partitionDistribution(particion$Fold04)
+set.seed(123456)
+folds <-createFolds(AritmiaNormalized$Aritmia.class, k = 5)
+particion <- lapply(folds,  function(indices) list(training=AritmiaNormalized[-indices,], test=AritmiaNormalized[indices,]))
+#particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
+partitionDistribution(particion$Fold1)
+
+Do5x2cv<-function(x){
+  set.seed(12345)
+  modelo<-train(AritmiaNormalized$Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
+  return(modelo$results$Accuracy)
+}
+
+sapply(particion[[i]],Do5x2cv)
+
+
+sapply(folds, function(i) table(AritmiaNormalized$Aritmia.class[i]))
+set.seed(12345)
+ks <- 1:12
+res <- sapply(ks, function(k) {
+res.knn<- sapply(seq_along(folds), function(i){
+  pred <- knn(train = AritmiaNormalized[-folds[[i]],],
+              test =AritmiaNormalized[folds[[i]],],
+              cl = AritmiaNormalized$Aritmia.class[ -folds[[i]] ], k = 3)
+  
+  
+  mean(AritmiaNormalized[ folds[[i]] ] != pred)
+})
+  
+mean(res.knn)
+})
 
 
 # Control de parámetros de particionamiento durante el entrenamiento
@@ -98,6 +124,7 @@ greedy <- function(x) {
         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
         bestAccu<-bestcandidateAccu
     }else{
+        print(paste0("final classification accuracy:",bestAccu ))
         final=TRUE
       }
     }
