@@ -52,7 +52,7 @@ train10CV <- trainControl(method = "cv", number = 10)
 set.seed(12345)
 train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
 set.seed(12345)
-modelo<-train(Aritmia.class ~AritmiaNormalized$chV1_RPwaveAmp,data=AritmiaNormalized,method="knn", tuneLength = 10,tuneGrid=expand.grid(.k=3),trControl = train5x2)
+modelo<-train(Aritmia.class ~AritmiaNormalized$chV1_RPwaveAmp+AritmiaNormalized$chV1_DD_RRwaveExists+AritmiaNormalized$chV3_RPwaveExists,data=AritmiaNormalized,method="knn",tuneGrid=expand.grid(.k=3),trControl = train5x2)
 #cl <- factor(c(rep("s",25), rep("c",25), rep("v",25)))
 #modelo<-knn3Train(training,test,cl,k=3, prob=TRUE)
 modelo$results$Accuracy
@@ -73,35 +73,33 @@ modelo <- function(x) {
 greedy <- function(x) { 
   selected<-as.vector(rep(0,ncol(x)-1))
   #df<-data.frame(colnames(AritmiaNormalized))
-  mejorSolActual<--1
   caracteristicasYaSel<-0
-  Solnueva<-0
   bestcandidateFeature<-0
   bestcandidateAccu<-0
   bestcandidateIndex<-0
-  bestAccuG<-0
   bestAccu<-0
   final<-FALSE
+  
   while( !final) {
-    bestAccuG<-bestAccu
+    
     bestcandidateAccu<-0
+    evalua<-0
     for( i in 1:(ncol(AritmiaNormalized)-1)){
       if(selected[i]!=1)
           evalua=modelo(caracteristicasYaSel+AritmiaNormalized[[i]])
-        if((evalua > bestcandidateAccu) && selected[i]!=1){
+        if((evalua > bestcandidateAccu) &&  selected[i]!=1){
           bestcandidateFeature<-AritmiaNormalized[[i]]
           bestcandidateAccu<-evalua
           bestcandidateIndex<-i
         }
     }
+    if(bestcandidateAccu>bestAccu){
         selected[bestcandidateIndex]=1
         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
-        bestAccu<-bestAccu+bestcandidateAccu
- #     modelo(AritmiaNormalized[[1]]+AritmiaNormalized[[2]])
- #   modelo(AritmiaNormalized[[1]])
-        if(bestAccuG==bestAccu)
-          final=TRUE
-    
+        bestAccu<-bestcandidateAccu
+    }else{
+        final=TRUE
+      }
     }
   return (selected)
 } 
