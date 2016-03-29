@@ -134,22 +134,6 @@ unlist(accuracyLists[[2]][i])+unlist(accuracyListsSwaped[[2]][i])) ) /  (length(
 
 
 
-
-
-
-# Control de parámetros de particionamiento durante el entrenamiento
-train10CV <- trainControl(method = "cv", number = 10)
-set.seed(12345)
-train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
-set.seed(12345)
-modelo<-train(Aritmia.class ~AritmiaNormalized$chV1_RPwaveAmp+AritmiaNormalized$chV1_DD_RRwaveExists+AritmiaNormalized$chV3_RPwaveExists,data=AritmiaNormalized,method="knn",tuneGrid=expand.grid(.k=3),trControl = train5x2)
-#cl <- factor(c(rep("s",25), rep("c",25), rep("v",25)))
-#modelo<-knn3Train(training,test,cl,k=3, prob=TRUE)
-modelo$results$Accuracy
-names(getModelInfo())
-pred<-predict(modelo, newdata=test)
-confusionMatrix(data = pred, test$Aritmia.class)
-
 #funcion aplicamodelo
 modelo <- function(x) { 
   set.seed(12345)
@@ -175,13 +159,14 @@ greedy <- function(x) {
     bestcandidateAccu<-0
     evalua<-0
     for( i in 1:(ncol(AritmiaNormalized)-1)){
-      if(selected[i]!=1)
+      if(selected[i]!=1){
           evalua=modelo(caracteristicasYaSel+AritmiaNormalized[[i]])
-        if((evalua > bestcandidateAccu) &&  selected[i]!=1){
+        if((evalua > bestcandidateAccu)){
           bestcandidateFeature<-AritmiaNormalized[[i]]
           bestcandidateAccu<-evalua
           bestcandidateIndex<-i
         }
+      }
     }
     if(bestcandidateAccu>bestAccu){
         selected[bestcandidateIndex]=1
@@ -196,5 +181,8 @@ greedy <- function(x) {
 } 
 
 
+tictoc::tic()
+greedy(AritmiaNormalized)
+tictoc::toc()
 
 
