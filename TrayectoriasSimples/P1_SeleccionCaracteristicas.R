@@ -54,32 +54,21 @@ Do5x2cv<-function(x){
 }
 
 #idea:
-a=Do5x2cv(particion$Fold1$training)
-b=Do5x2cv(particion$Fold2$training)
-c=Do5x2cv(particion$Fold3$training)
-d=Do5x2cv(particion$Fold4$training)
-e=Do5x2cv(particion$Fold5$training)
-
-
-
-listaModelos=list(length(particion))
-for(i in seq_along(particion)){
-  a<-Do5x2cv(particion[[i]][[2]])
-  listaModelos[[i]]<-a
-}
-set.seed(1)
-modelos <- lapply(seq_along(particion),  function(i) list(a<-Do5x2cv(particion[[i]]$training)))
-
-#MIERD=list(length(particion))
-#lapply(seq_along(particion), function(i){
-  #a<-Do5x2cv(particion[[i]][[2]])
- # MIERD[[i]]<-a
-#})
+#a=Do5x2cv(particion$Fold1$training)
+#b=Do5x2cv(particion$Fold2$training)
+#c=Do5x2cv(particion$Fold3$training)
+#d=Do5x2cv(particion$Fold4$training)
+#e=Do5x2cv(particion$Fold5$training)
 
 #l2<-list(a$results$Accuracy,b$results$Accuracy,c$results$Accuracy,d$results$Accuracy,e$results$Accuracy)
-l<-list(listaModelos[[1]]$results$Accuracy,listaModelos[[2]]$results$Accuracy,listaModelos[[3]]$results$Accuracy,listaModelos[[4]]$results$Accuracy,
-        listaModelos[[5]]$results$Accuracy)
-AccuracyMean_Training=Reduce(`+`, l) / length(l)
+
+set.seed(1)
+modelos <- sapply(seq_along(particion),  function(i) list(Do5x2cv(particion[[i]]$training)))
+
+listAccuracyTrain<-list(modelos[[1]]$results$Accuracy,modelos[[2]]$results$Accuracy,modelos[[3]]$results$Accuracy,modelos[[4]]$results$Accuracy,
+        modelos[[5]]$results$Accuracy)
+
+AccuracyMean_Training=Reduce(`+`, listAccuracyTrain) / length(listAccuracyTrain)
 
 
 predictions <- lapply(seq_along(listaModelos),  function(i) list(pred_a<-predict(listaModelos[[i]],particion[[i]]$test)))
