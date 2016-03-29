@@ -35,10 +35,8 @@ library(caret)
 
 set.seed(123456)
 indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
-particion <- list(training=AritmiaNormalized[indices,], test=AritmiaNormalized[-indices,])
 training=AritmiaNormalized[indices,]
 test=AritmiaNormalized[-indices,]
-partitionDistribution(particion)
 
 # Creación de múltiples particiones
 set.seed(123456)
@@ -47,31 +45,66 @@ particion <- lapply(folds,  function(indices) list(training=AritmiaNormalized[-i
 #particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
 partitionDistribution(particion$Fold1)
 
-Do5x2cv<-function(x){
+Adjust3nn<-function(x){
   set.seed(12345)
   modelo<-train(Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
   return(modelo)
 }
 
-#idea:
-#a=Do5x2cv(particion$Fold1$training)
-#b=Do5x2cv(particion$Fold2$training)
-#c=Do5x2cv(particion$Fold3$training)
-#d=Do5x2cv(particion$Fold4$training)
-#e=Do5x2cv(particion$Fold5$training)
+Do5x2cv<-function(partition){
+  #idea:
+  #a=Adjust3nn(particion$Fold1$training)
+  #b=Adjust3nn(particion$Fold2$training)
+  #c=Adjust3nn(particion$Fold3$training)
+  #d=Adjust3nn(particion$Fold4$training)
+  #e=Adjust3nn(particion$Fold5$training)
+  
+  #l2<-list(a$results$Accuracy,b$results$Accuracy,c$results$Accuracy,d$results$Accuracy,e$results$Accuracy)
+  
+  modelos <- sapply(seq_along(partition),  function(i) list(Adjust3nn(partition[[i]]$training)))
+  
+  listAccuracyTrain<-list(modelos[[1]]$results$Accuracy,modelos[[2]]$results$Accuracy,modelos[[3]]$results$Accuracy,modelos[[4]]$results$Accuracy,
+                          modelos[[5]]$results$Accuracy)
+  
+  
+  #do test predictions
+  predictions <- sapply(seq_along(modelos),  function(i) list(pred_a<-predict(modelos[[i]],partition[[i]]$test)))
+  
+  post <- sapply(seq_along(predictions),  function(i) list(postResample(predictions[[i]],partition[[i]]$test$Aritmia.class)))
+  
+  post.numeric<-lapply(seq_along(post),  function(i) c(as.numeric(post[[i]])))
+  
+  lTest<-list(post.numeric[[1]][[1]],post.numeric[[2]][[1]],post.numeric[[3]][[1]],post.numeric[[4]][[1]],post.numeric[[5]][[1]])
+  
+  return (list( listAccuracyTrain,lTest))
+  
+}
 
-#l2<-list(a$results$Accuracy,b$results$Accuracy,c$results$Accuracy,d$results$Accuracy,e$results$Accuracy)
 
-set.seed(1)
-modelos <- sapply(seq_along(particion),  function(i) list(Do5x2cv(particion[[i]]$training)))
+tictoc::tic()
+accuracyLists=Do5x2cv(particion)
+tictoc::toc()
 
-listAccuracyTrain<-list(modelos[[1]]$results$Accuracy,modelos[[2]]$results$Accuracy,modelos[[3]]$results$Accuracy,modelos[[4]]$results$Accuracy,
-        modelos[[5]]$results$Accuracy)
+#swap train and test partitions 
+particion<-lapply(seq_along(particion),  function(i){
+  swapTest <-particion[[i]]$test
+  particion[[i]]$test<-particion[[i]]$training
+  particion[[i]]$training<-swapTest
+  list(training=particion[[i]]$training,test=particion[[i]]$test)
+})
 
-AccuracyMean_Training=Reduce(`+`, listAccuracyTrain) / length(listAccuracyTrain)
 
-#do test predictions
-predictions <- sapply(seq_along(modelos),  function(i) list(pred_a<-predict(modelos[[i]],particion[[i]]$test)))
+tictoc::tic()
+accuracyListsSwaped=Do5x2cv(particion)
+tictoc::toc()
+
+
+AccuracyMean_Training=Reduce(`+`, lapply(seq_along(1:5),function(i)
+unlist(accuracyLists[[1]][i])+unlist(accuracyListsSwaped[[1]][i]))) / (length(accuracyLists[[1]])+length(accuracyListsSwaped[[1]]))
+
+
+AccuracyMean_Test=Reduce(`+`,lapply(seq_along(1:5),function(i)
+unlist(accuracyLists[[2]][i])+unlist(accuracyListsSwaped[[2]][i])) ) /  (length(accuracyLists[[2]])+length(accuracyListsSwaped[[2]]))
 
 #pred_a<-predict(a,particion$Fold1$test)
 #pred_b<-predict(b,particion$Fold2$test)
@@ -88,38 +121,20 @@ predictions <- sapply(seq_along(modelos),  function(i) list(pred_a<-predict(mode
 #post_d=postResample(pred_d,particion$Fold4$test$Aritmia.class)
 #ost_e=postResample(pred_e,particion$Fold5$test$Aritmia.class)
 
-post <- sapply(seq_along(predictions),  function(i) list(postResample(predictions[[i]],particion[[i]]$test$Aritmia.class)))
+
+#post_a<-as.numeric(post_a)
+#post_b<-as.numeric(post_b)
+#post_c<-as.numeric(post_c)
+#post_d<-as.numeric(post_d)
+#post_e<-as.numeric(post_e)
+
+#lTest<-list(post_a[1],post_b[1],post_c[1],post_d[1],post_e[1])
+
+#identical( particion[[1]][[2]], particion$Fold1$test)
 
 
-ll<-data.frame(post_a,post_b,post_c,post_d,post_e)
-post_a<-as.numeric(post_a)
-post_b<-as.numeric(post_b)
-post_c<-as.numeric(post_c)
-post_d<-as.numeric(post_d)
-post_e<-as.numeric(post_e)
-
-lTest<-list(post_a[1],post_b[1],post_c[1],post_d[1],post_e[1])
-AccuracyMean_Test=Reduce(`+`, lTest) / length(lTest)
 
 
-identical( particion[[1]][[2]], particion$Fold1$test)
-
-
-sapply(folds, function(i) table(AritmiaNormalized$Aritmia.class[i]))
-set.seed(12345)
-ks <- 1:12
-res <- sapply(ks, function(k) {
-res.knn<- sapply(seq_along(folds), function(i){
-  pred <- knn(train = AritmiaNormalized[-folds[[i]],],
-              test =AritmiaNormalized[folds[[i]],],
-              cl = AritmiaNormalized$Aritmia.class[ -folds[[i]] ], k = 3)
-  
-  
-  mean(AritmiaNormalized[ folds[[i]] ] != pred)
-})
-  
-mean(res.knn)
-})
 
 
 # Control de parámetros de particionamiento durante el entrenamiento
@@ -139,7 +154,7 @@ confusionMatrix(data = pred, test$Aritmia.class)
 modelo <- function(x) { 
   set.seed(12345)
   train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
-  set.seed(12345)
+  set.seed(123456)
   modelo<-train(Aritmia.class ~x,data=AritmiaNormalized,method="knn", tuneGrid=expand.grid(.k=3),trControl = train5x2)
   return(modelo$results$Accuracy)
 }
