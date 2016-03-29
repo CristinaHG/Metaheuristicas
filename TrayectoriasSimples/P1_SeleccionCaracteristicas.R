@@ -70,22 +70,26 @@ listAccuracyTrain<-list(modelos[[1]]$results$Accuracy,modelos[[2]]$results$Accur
 
 AccuracyMean_Training=Reduce(`+`, listAccuracyTrain) / length(listAccuracyTrain)
 
+#do test predictions
+predictions <- sapply(seq_along(modelos),  function(i) list(pred_a<-predict(modelos[[i]],particion[[i]]$test)))
 
-predictions <- lapply(seq_along(listaModelos),  function(i) list(pred_a<-predict(listaModelos[[i]],particion[[i]]$test)))
-
-pred_a<-predict(a,particion$Fold1$test)
-pred_b<-predict(b,particion$Fold2$test)
-pred_c<-predict(c,particion$Fold3$test)
-pred_d<-predict(d,particion$Fold4$test)
-pred_e<-predict(e,particion$Fold5$test)
+#pred_a<-predict(a,particion$Fold1$test)
+#pred_b<-predict(b,particion$Fold2$test)
+#pred_c<-predict(c,particion$Fold3$test)
+#pred_d<-predict(d,particion$Fold4$test)
+#pred_e<-predict(e,particion$Fold5$test)
 
 
 #confusionMatrix(pred_a,particion$Fold1$test$Aritmia.class)
-post_a=postResample(pred_a,particion$Fold1$test$Aritmia.class)
-post_b=postResample(pred_b,particion$Fold2$test$Aritmia.class)
-post_c=postResample(pred_c,particion$Fold3$test$Aritmia.class)
-post_d=postResample(pred_d,particion$Fold4$test$Aritmia.class)
-post_e=postResample(pred_e,particion$Fold5$test$Aritmia.class)
+
+#post_a=postResample(pred_a,particion$Fold1$test$Aritmia.class)
+#post_b=postResample(pred_b,particion$Fold2$test$Aritmia.class)
+#post_c=postResample(pred_c,particion$Fold3$test$Aritmia.class)
+#post_d=postResample(pred_d,particion$Fold4$test$Aritmia.class)
+#ost_e=postResample(pred_e,particion$Fold5$test$Aritmia.class)
+
+post <- sapply(seq_along(predictions),  function(i) list(postResample(predictions[[i]],particion[[i]]$test$Aritmia.class)))
+
 
 ll<-data.frame(post_a,post_b,post_c,post_d,post_e)
 post_a<-as.numeric(post_a)
