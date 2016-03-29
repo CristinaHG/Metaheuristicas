@@ -49,11 +49,67 @@ partitionDistribution(particion$Fold1)
 
 Do5x2cv<-function(x){
   set.seed(12345)
-  modelo<-train(AritmiaNormalized$Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
-  return(modelo$results$Accuracy)
+  modelo<-train(Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
+  return(modelo)
 }
 
-sapply(particion[[i]][[i]],Do5x2cv)
+#idea:
+a=Do5x2cv(particion$Fold1$training)
+b=Do5x2cv(particion$Fold2$training)
+c=Do5x2cv(particion$Fold3$training)
+d=Do5x2cv(particion$Fold4$training)
+e=Do5x2cv(particion$Fold5$training)
+
+
+
+listaModelos=list(length(particion))
+for(i in seq_along(particion)){
+  a<-Do5x2cv(particion[[i]][[2]])
+  listaModelos[[i]]<-a
+}
+set.seed(1)
+modelos <- lapply(seq_along(particion),  function(i) list(a<-Do5x2cv(particion[[i]]$training)))
+
+#MIERD=list(length(particion))
+#lapply(seq_along(particion), function(i){
+  #a<-Do5x2cv(particion[[i]][[2]])
+ # MIERD[[i]]<-a
+#})
+
+#l2<-list(a$results$Accuracy,b$results$Accuracy,c$results$Accuracy,d$results$Accuracy,e$results$Accuracy)
+l<-list(listaModelos[[1]]$results$Accuracy,listaModelos[[2]]$results$Accuracy,listaModelos[[3]]$results$Accuracy,listaModelos[[4]]$results$Accuracy,
+        listaModelos[[5]]$results$Accuracy)
+AccuracyMean_Training=Reduce(`+`, l) / length(l)
+
+
+predictions <- lapply(seq_along(listaModelos),  function(i) list(pred_a<-predict(listaModelos[[i]],particion[[i]]$test)))
+
+pred_a<-predict(a,particion$Fold1$test)
+pred_b<-predict(b,particion$Fold2$test)
+pred_c<-predict(c,particion$Fold3$test)
+pred_d<-predict(d,particion$Fold4$test)
+pred_e<-predict(e,particion$Fold5$test)
+
+
+#confusionMatrix(pred_a,particion$Fold1$test$Aritmia.class)
+post_a=postResample(pred_a,particion$Fold1$test$Aritmia.class)
+post_b=postResample(pred_b,particion$Fold2$test$Aritmia.class)
+post_c=postResample(pred_c,particion$Fold3$test$Aritmia.class)
+post_d=postResample(pred_d,particion$Fold4$test$Aritmia.class)
+post_e=postResample(pred_e,particion$Fold5$test$Aritmia.class)
+
+ll<-data.frame(post_a,post_b,post_c,post_d,post_e)
+post_a<-as.numeric(post_a)
+post_b<-as.numeric(post_b)
+post_c<-as.numeric(post_c)
+post_d<-as.numeric(post_d)
+post_e<-as.numeric(post_e)
+
+lTest<-list(post_a[1],post_b[1],post_c[1],post_d[1],post_e[1])
+AccuracyMean_Test=Reduce(`+`, lTest) / length(lTest)
+
+
+identical( particion[[1]][[2]], particion$Fold1$test)
 
 
 sapply(folds, function(i) table(AritmiaNormalized$Aritmia.class[i]))
