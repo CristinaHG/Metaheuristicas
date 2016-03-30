@@ -185,4 +185,29 @@ tictoc::tic()
 greedy(AritmiaNormalized)
 tictoc::toc()
 
+selected<-SolInitial
+
+getFeatures<-function(selected,dataset){
+  featuresList<-lapply(seq_along(selected), function(i) {
+    if (selected[[i]]==1) {
+      list(dataset[[i]])}
+  }) 
+   features<-mapply(`+`,seq_along(featuresList), unlist(featuresList[[i]]))
+}
+
+LocalSearch<-function(x){
+  set.seed(12345)
+  nfeatures<-(ncol(x)-1)
+  #selected<-as.vector(rep(0,nfeatures))
+  
+  SolInitial<-sample(0:1,nfeatures, replace = TRUE)
+  SolActual<-modelo(AritmiaNormalized[[SolInitial]])
+  
+  for( i in seq_along(SolInitial:nfeatures)){
+    evaluaVecina=modelo(AritmiaNormalized[[i]])
+  #  if(evaluaVecina>SolActual)
+    
+  }
+}
+
 
