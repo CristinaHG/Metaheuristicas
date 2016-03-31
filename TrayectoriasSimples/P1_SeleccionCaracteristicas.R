@@ -222,7 +222,7 @@ getFeatures<-function(selected,dataset){
 LocalSearch<-function(x){
   dataset=x
   nfeatures<-ncol(x)-1
-  set.seed(1) #semilla para que salva pueda obtener la misma solución inicial
+  set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
   selected<-SolInitial
   AccuracyActual<-0
