@@ -222,15 +222,36 @@ getFeatures<-function(selected,dataset){
    
    
 LocalSearch<-function(x){
-
+  dataset=x
+  nfeatures<-ncol(x)-1
   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-  SolActual<-modelo(AritmiaNormalized[[SolInitial]])
+  selected<-SolInitial
+  AccuracyActual<-0
+  bestSolFound=FALSE
+  nEval<-0
+  vecina<-0
   
-  for( i in seq_along(SolInitial:nfeatures)){
-    evaluaVecina=modelo(AritmiaNormalized[[i]])
-  #  if(evaluaVecina>SolActual)
+  AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
+  
+  while(!fin && (nEval<15000)){
+    bestSolFound=FALSE
+  for( i in seq_along(selected) && (!bestSolFound)){
+    vecina<-flip(selected,i)
+    evaluaVecina=modelo(getFeatures(vecina,dataset))
+    nEval<-nEval+1
+    
+    if(evaluaVecina>AccuracyActual){
+      bestSolFound=TRUE
+      selected<-vecina
+      AccuracyActual<-evaluaVecina
+    }
+    if((!bestSolFound) && (i==nfeatures)){
+      fin=TRUE
+    }
     
   }
+  }
+  return (selected)
 }
 
 
