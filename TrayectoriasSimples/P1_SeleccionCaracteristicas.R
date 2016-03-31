@@ -215,8 +215,8 @@ getFeatures<-function(selected,dataset){
 
    
    flip<-function(selected,i){
-     if(selected[i]==1) selected[i]<-0
-     else selected[i]<-1
+     if(selected[[i]]==1){ selected[[i]]<-0
+     }else{ selected[[i]]<-1}
      return (selected)
    }
    
@@ -230,10 +230,11 @@ LocalSearch<-function(x){
   bestSolFound=FALSE
   nEval<-0
   vecina<-0
+  fin<-FALSE
   
   AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
   
-  while(!fin && (nEval<15000)){
+  while((!fin) && (nEval<15000)){
     bestSolFound=FALSE
   for( i in seq_along(selected) && (!bestSolFound)){
     vecina<-flip(selected,i)
@@ -248,10 +249,11 @@ LocalSearch<-function(x){
     if((!bestSolFound) && (i==nfeatures)){
       fin=TRUE
     }
-    
   }
   }
   return (selected)
 }
 
-
+tictoc::tic()
+solBl<-LocalSearch(AritmiaNormalized)
+tictoc::toc()
