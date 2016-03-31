@@ -1,6 +1,6 @@
 library(foreign)
 Aritmia<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/arrhythmia.arff")
-View(Aritmia)
+#View(Aritmia)
 
 normalize <- function(x) { 
   x <- as.matrix(as.numeric(x))
@@ -182,24 +182,47 @@ greedy <- function(x) {
 
 
 tictoc::tic()
-greedy(AritmiaNormalized)
+ greedy(AritmiaNormalized)
 tictoc::toc()
+
+#system.time(
+#  greedy(AritmiaNormalized)
+#)
 
 selected<-SolInitial
 
 getFeatures<-function(selected,dataset){
-  featuresList<-lapply(seq_along(selected), function(i) {
+  featuresList<-sapply(seq_along(selected), function(i) {
     if (selected[[i]]==1) {
-      list(dataset[[i]])}
+      (dataset[[i]])}
   }) 
-   features<-mapply(`+`,seq_along(featuresList), unlist(featuresList[[i]]))
+  
+  features<-0
+  for(i in seq_along(featuresList)){
+    if(!(is.null(featuresList[[i]])))
+      features<-features+ unlist(featuresList[[i]])
+  }
+  
+  return (features)
 }
 
+   features<-lapply(seq_along(featuresList),function(i) {
+     lista<-list(0)
+        if(!(is.null(featuresList[[i]]))){
+          sapply(seq_along(featuresList),function(i) sapply(featuresList[[i]],"+"))
+        }
+     })
+
+   
+   flip<-function(selected,i){
+     if(selected[i]==1) selected[i]<-0
+     else selected[i]<-1
+     return (selected)
+   }
+   
+   
 LocalSearch<-function(x){
-  set.seed(12345)
-  nfeatures<-(ncol(x)-1)
-  #selected<-as.vector(rep(0,nfeatures))
-  
+
   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
   SolActual<-modelo(AritmiaNormalized[[SolInitial]])
   
