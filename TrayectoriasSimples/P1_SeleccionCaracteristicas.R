@@ -189,8 +189,6 @@ tictoc::toc()
 #  greedy(AritmiaNormalized)
 #)
 
-selected<-SolInitial
-
 getFeatures<-function(selected,dataset){
   featuresList<-sapply(seq_along(selected), function(i) {
     if (selected[[i]]==1) {
@@ -224,6 +222,7 @@ getFeatures<-function(selected,dataset){
 LocalSearch<-function(x){
   dataset=x
   nfeatures<-ncol(x)-1
+  set.seed(1) #semilla para que salva pueda obtener la misma solución inicial
   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
   selected<-SolInitial
   AccuracyActual<-0
@@ -233,23 +232,38 @@ LocalSearch<-function(x){
   fin<-FALSE
   
   AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
+  Accuracyinicial<-AccuracyActual
   
-  while((!fin) && (nEval<15000)){
+#  while((!fin) && (nEval<15000)){
+  while(!fin){
+    if(nEval==15000){
+      break
+    }
     bestSolFound=FALSE
-  for( i in seq_along(selected) && (!bestSolFound)){
-    vecina<-flip(selected,i)
-    evaluaVecina=modelo(getFeatures(vecina,dataset))
-    nEval<-nEval+1
+    #for( i in seq_along(selected) && (!bestSolFound)){
+    for( i in seq_along(selected)){
+    if(!bestSolFound){
+        vecina<-flip(selected,i)
+        evaluaVecina=modelo(getFeatures(vecina,dataset))
+        nEval<-nEval+1
     
-    if(evaluaVecina>AccuracyActual){
-      bestSolFound=TRUE
-      selected<-vecina
-      AccuracyActual<-evaluaVecina
+     if(evaluaVecina>AccuracyActual){
+       bestSolFound=TRUE
+       selected<-vecina
+       AccuracyActual<-evaluaVecina
+      # break
+     }
+      if(i==nfeatures){
+        fin<-TRUE
+        break
+      }
+    }else{
+      break
     }
-    if((!bestSolFound) && (i==nfeatures)){
-      fin=TRUE
     }
-  }
+ #   if((!bestSolFound) && (i==nfeatures)){
+#      fin=TRUE
+  #  }
   }
   return (selected)
 }
@@ -257,3 +271,16 @@ LocalSearch<-function(x){
 tictoc::tic()
 solBl<-LocalSearch(AritmiaNormalized)
 tictoc::toc()
+
+n<-0
+for( i in (1:5) ){
+  if(i==3)
+    break
+
+    if(!bestSolFound)
+      print(paste0("hola:" ))
+}
+
+
+
+
