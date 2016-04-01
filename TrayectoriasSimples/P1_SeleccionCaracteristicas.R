@@ -283,8 +283,7 @@ SimulateAnnealing<-function(x){
   nfeatures<-ncol(x)-1
   set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-  selected<-SolInitial
-  AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
+  SolActual<-SolInitial
   Tinitial<-(mu*AccuracyInitial)/(-log(phi))
   Tfinal<-10^-3
   max_vecinos<- 5*n
@@ -293,15 +292,62 @@ SimulateAnnealing<-function(x){
   Tactual<-0
   nEnfriamientos<-15000/(max_vecinos*max_vecinos)
   sinExito<-FALSE
+  randomIndex<-0
+  bestGlobal<-SolInitial
+  AccuracyActual<-0
+  AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
+  BestAccuracyGlobal<-AccuracyInitial
+  AccuracyActual<-AccuracyInitial
+  nAceptados<-0
+  diferencia<-0
+  Paceptacion<-0
+  u<-0
   
+  while(!sinExito){ #si iteraccion sin exito termina
+    if(nEval==1500){
+      break 
+    }
+    if(Tactual<=Tfinal){
+      break
+    }
+    
+    for(i in seq_along(SolActual)){
+      if(nEval==max_vecinos){
+        break
+      }
+      if(nAceptados==max_exitos){
+        break
+      }
+      randomIndex<-sample(1:nfeatures,1,replace=FALSE)
+      vecina<-flip(SolActual,randomIndex)
+      featuresVecina<-getFeatures(vecina,dataset)
+      VecinaAccu<-modelo(featuresVecina)
+      nEval<-nEval+1
+      diferencia<-(vecinaAccu-AccuracyActual)
+      #se la queda si es mejor o si criterio aceptacion ese
+      if(diferencia<0){
+        SolActual<-vecina
+        AccuracyActual<-VecinaAccu
+        nAceptados<-nAceptados+1
+      }else{
+        u<-sample(0:1,1,replace=FALSE)
+        Paceptacion<-exp(-diferencia/Tactual)
+        if(u<=Paceptacion){
+          SolActual<-vecina
+          AccuracyActual<-VecinaAccu
+          nAceptados<-nAceptados+1
+        }
+      }
+       
+      }
+        
+    }
+   
+  }
+  #cuando termina la busqueda local,enfria
  Beta<-(Tinitial-Tfinal)/(nEnfriamientos*Tinitial*Tfinal)
  Tactual<-Tactual/(1+Beta*Tactual)
 }
 
-while(!sinExito){
-  if(nEval==15000){
-    break
-  }
   
-}
 
