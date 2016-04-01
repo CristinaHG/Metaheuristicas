@@ -277,8 +277,31 @@ for( i in (1:5) ){
 
 
 SimulateAnnealing<-function(x){
+  mu<-0.3
+  phi<-0.3
+  dataset=x
+  nfeatures<-ncol(x)-1
+  set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
+  SolInitial<-sample(0:1,nfeatures, replace = TRUE)
+  selected<-SolInitial
+  AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
+  Tinitial<-(mu*AccuracyInitial)/(-log(phi))
+  Tfinal<-10^-3
+  max_vecinos<- 5*n
+  max_exitos<- 0.1*max_vecinos
+  nEval<-0
+  Tactual<-0
+  nEnfriamientos<-15000/(max_vecinos*max_vecinos)
+  sinExito<-FALSE
   
-  
+ Beta<-(Tinitial-Tfinal)/(nEnfriamientos*Tinitial*Tfinal)
+ Tactual<-Tactual/(1+Beta*Tactual)
+}
+
+while(!sinExito){
+  if(nEval==15000){
+    break
+  }
   
 }
 
