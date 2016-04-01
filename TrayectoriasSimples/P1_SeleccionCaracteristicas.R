@@ -190,26 +190,21 @@ tictoc::toc()
 #)
 
 getFeatures<-function(selected,dataset){
-  featuresList<-sapply(seq_along(selected), function(i) {
+  featuresList<-lapply(seq_along(selected), function(i) {
     if (selected[[i]]==1) {
       (dataset[[i]])}
   }) 
   
-  features<-0
-  for(i in seq_along(featuresList)){
-    if(!(is.null(featuresList[[i]])))
-      features<-features+ unlist(featuresList[[i]])
-  }
+  #features<-0
+  #for(i in seq_along(featuresList)){
+   # if(!(is.null(featuresList[[i]])))
+   #   features<-features+ unlist(featuresList[[i]])
+  #}
+  
+  features<-Reduce('+',Filter(Negate(is.null), featuresList))
   
   return (features)
 }
-
-   features<-lapply(seq_along(featuresList),function(i) {
-     lista<-list(0)
-        if(!(is.null(featuresList[[i]]))){
-          sapply(seq_along(featuresList),function(i) sapply(featuresList[[i]],"+"))
-        }
-     })
 
    
    flip<-function(selected,i){
