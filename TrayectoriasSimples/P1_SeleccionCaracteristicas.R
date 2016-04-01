@@ -195,13 +195,12 @@ getFeatures<-function(selected,dataset){
       (dataset[[i]])}
   }) 
   
+  features<-Reduce('+',Filter(Negate(is.null), featuresList))
   #features<-0
   #for(i in seq_along(featuresList)){
    # if(!(is.null(featuresList[[i]])))
    #   features<-features+ unlist(featuresList[[i]])
   #}
-  
-  features<-Reduce('+',Filter(Negate(is.null), featuresList))
   
   return (features)
 }
@@ -277,5 +276,9 @@ for( i in (1:5) ){
 }
 
 
-
+SimulateAnnealing<-function(x){
+  
+  
+  
+}
 
