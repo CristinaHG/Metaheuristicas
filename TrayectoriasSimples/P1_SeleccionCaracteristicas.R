@@ -38,73 +38,73 @@ indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list =
 training=AritmiaNormalized[indices,]
 test=AritmiaNormalized[-indices,]
 
-# Creación de múltiples particiones
-set.seed(123456)
-folds <-createFolds(AritmiaNormalized$Aritmia.class, k = 5)
-particion <- lapply(folds,  function(indices) list(training=AritmiaNormalized[-indices,], test=AritmiaNormalized[indices,]))
-#particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
-partitionDistribution(particion$Fold1)
-
-Adjust3nn<-function(x){
-  set.seed(12345)
-  modelo<-train(Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
-  return(modelo)
-}
-
-Do5x2cv<-function(partition){
-  #idea:
-  #a=Adjust3nn(particion$Fold1$training)
-  #b=Adjust3nn(particion$Fold2$training)
-  #c=Adjust3nn(particion$Fold3$training)
-  #d=Adjust3nn(particion$Fold4$training)
-  #e=Adjust3nn(particion$Fold5$training)
-  
-  #l2<-list(a$results$Accuracy,b$results$Accuracy,c$results$Accuracy,d$results$Accuracy,e$results$Accuracy)
-  
-  modelos <- sapply(seq_along(partition),  function(i) list(Adjust3nn(partition[[i]]$training)))
-  
-  listAccuracyTrain<-list(modelos[[1]]$results$Accuracy,modelos[[2]]$results$Accuracy,modelos[[3]]$results$Accuracy,modelos[[4]]$results$Accuracy,
-                          modelos[[5]]$results$Accuracy)
-  
-  
-  #do test predictions
-  predictions <- sapply(seq_along(modelos),  function(i) list(pred_a<-predict(modelos[[i]],partition[[i]]$test)))
-  
-  post <- sapply(seq_along(predictions),  function(i) list(postResample(predictions[[i]],partition[[i]]$test$Aritmia.class)))
-  
-  post.numeric<-lapply(seq_along(post),  function(i) c(as.numeric(post[[i]])))
-  
-  lTest<-list(post.numeric[[1]][[1]],post.numeric[[2]][[1]],post.numeric[[3]][[1]],post.numeric[[4]][[1]],post.numeric[[5]][[1]])
-  
-  return (list( listAccuracyTrain,lTest))
-  
-}
-
-
-tictoc::tic()
-accuracyLists=Do5x2cv(particion)
-tictoc::toc()
-
-#swap train and test partitions 
-particion<-lapply(seq_along(particion),  function(i){
-  swapTest <-particion[[i]]$test
-  particion[[i]]$test<-particion[[i]]$training
-  particion[[i]]$training<-swapTest
-  list(training=particion[[i]]$training,test=particion[[i]]$test)
-})
-
-
-tictoc::tic()
-accuracyListsSwaped=Do5x2cv(particion)
-tictoc::toc()
-
-
-AccuracyMean_Training=Reduce(`+`, lapply(seq_along(1:5),function(i)
-unlist(accuracyLists[[1]][i])+unlist(accuracyListsSwaped[[1]][i]))) / (length(accuracyLists[[1]])+length(accuracyListsSwaped[[1]]))
-
-
-AccuracyMean_Test=Reduce(`+`,lapply(seq_along(1:5),function(i)
-unlist(accuracyLists[[2]][i])+unlist(accuracyListsSwaped[[2]][i])) ) /  (length(accuracyLists[[2]])+length(accuracyListsSwaped[[2]]))
+# # Creación de múltiples particiones
+# set.seed(123456)
+# folds <-createFolds(AritmiaNormalized$Aritmia.class, k = 1)
+# particion <- lapply(folds,  function(indices) list(training=AritmiaNormalized[-indices,], test=AritmiaNormalized[indices,]))
+# #particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
+# partitionDistribution(particion$Fold1)
+# 
+# Adjust3nn<-function(x){
+#   set.seed(12345)
+#   modelo<-train(Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
+#   return(modelo)
+# }
+# 
+# Do5x2cv<-function(partition){
+#   #idea:
+#   #a=Adjust3nn(particion$Fold1$training)
+#   #b=Adjust3nn(particion$Fold2$training)
+#   #c=Adjust3nn(particion$Fold3$training)
+#   #d=Adjust3nn(particion$Fold4$training)
+#   #e=Adjust3nn(particion$Fold5$training)
+#   
+#   #l2<-list(a$results$Accuracy,b$results$Accuracy,c$results$Accuracy,d$results$Accuracy,e$results$Accuracy)
+#   
+#   modelos <- sapply(seq_along(partition),  function(i) list(Adjust3nn(partition[[i]]$training)))
+#   
+#   listAccuracyTrain<-list(modelos[[1]]$results$Accuracy,modelos[[2]]$results$Accuracy,modelos[[3]]$results$Accuracy,modelos[[4]]$results$Accuracy,
+#                           modelos[[5]]$results$Accuracy)
+#   
+#   
+#   #do test predictions
+#   predictions <- sapply(seq_along(modelos),  function(i) list(pred_a<-predict(modelos[[i]],partition[[i]]$test)))
+#   
+#   post <- sapply(seq_along(predictions),  function(i) list(postResample(predictions[[i]],partition[[i]]$test$Aritmia.class)))
+#   
+#   post.numeric<-lapply(seq_along(post),  function(i) c(as.numeric(post[[i]])))
+#   
+#   lTest<-list(post.numeric[[1]][[1]],post.numeric[[2]][[1]],post.numeric[[3]][[1]],post.numeric[[4]][[1]],post.numeric[[5]][[1]])
+#   
+#   return (list( listAccuracyTrain,lTest))
+#   
+# }
+# 
+# 
+# tictoc::tic()
+# accuracyLists=Do5x2cv(particion)
+# tictoc::toc()
+# 
+# #swap train and test partitions 
+# particion<-lapply(seq_along(particion),  function(i){
+#   swapTest <-particion[[i]]$test
+#   particion[[i]]$test<-particion[[i]]$training
+#   particion[[i]]$training<-swapTest
+#   list(training=particion[[i]]$training,test=particion[[i]]$test)
+# })
+# 
+# 
+# tictoc::tic()
+# accuracyListsSwaped=Do5x2cv(particion)
+# tictoc::toc()
+# 
+# 
+# AccuracyMean_Training=Reduce(`+`, lapply(seq_along(1:5),function(i)
+# unlist(accuracyLists[[1]][i])+unlist(accuracyListsSwaped[[1]][i]))) / (length(accuracyLists[[1]])+length(accuracyListsSwaped[[1]]))
+# 
+# 
+# AccuracyMean_Test=Reduce(`+`,lapply(seq_along(1:5),function(i)
+# unlist(accuracyLists[[2]][i])+unlist(accuracyListsSwaped[[2]][i])) ) /  (length(accuracyLists[[2]])+length(accuracyListsSwaped[[2]]))
 
 #pred_a<-predict(a,particion$Fold1$test)
 #pred_b<-predict(b,particion$Fold2$test)
@@ -144,46 +144,46 @@ modelo <- function(x) {
 }
 
 #algoritmo greedy
-greedy <- function(x) { 
-  selected<-as.vector(rep(0,ncol(x)-1))
-  #df<-data.frame(colnames(AritmiaNormalized))
-  caracteristicasYaSel<-0
-  bestcandidateFeature<-0
-  bestcandidateAccu<-0
-  bestcandidateIndex<-0
-  bestAccu<-0
-  final<-FALSE
-  
-  while( !final) {
-    
-    bestcandidateAccu<-0
-    evalua<-0
-    for( i in 1:(ncol(AritmiaNormalized)-1)){
-      if(selected[i]!=1){
-          evalua=modelo(caracteristicasYaSel+AritmiaNormalized[[i]])
-        if((evalua > bestcandidateAccu)){
-          bestcandidateFeature<-AritmiaNormalized[[i]]
-          bestcandidateAccu<-evalua
-          bestcandidateIndex<-i
-        }
-      }
-    }
-    if(bestcandidateAccu>bestAccu){
-        selected[bestcandidateIndex]=1
-        caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
-        bestAccu<-bestcandidateAccu
-    }else{
-        print(paste0("final classification accuracy:",bestAccu ))
-        final=TRUE
-      }
-    }
-  return (selected)
-} 
-
-
-tictoc::tic()
- greedy(AritmiaNormalized)
-tictoc::toc()
+# greedy <- function(x) { 
+#   selected<-as.vector(rep(0,ncol(x)-1))
+#   #df<-data.frame(colnames(AritmiaNormalized))
+#   caracteristicasYaSel<-0
+#   bestcandidateFeature<-0
+#   bestcandidateAccu<-0
+#   bestcandidateIndex<-0
+#   bestAccu<-0
+#   final<-FALSE
+#   
+#   while( !final) {
+#     
+#     bestcandidateAccu<-0
+#     evalua<-0
+#     for( i in 1:(ncol(AritmiaNormalized)-1)){
+#       if(selected[i]!=1){
+#           evalua=modelo(caracteristicasYaSel+AritmiaNormalized[[i]])
+#         if((evalua > bestcandidateAccu)){
+#           bestcandidateFeature<-AritmiaNormalized[[i]]
+#           bestcandidateAccu<-evalua
+#           bestcandidateIndex<-i
+#         }
+#       }
+#     }
+#     if(bestcandidateAccu>bestAccu){
+#         selected[bestcandidateIndex]=1
+#         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
+#         bestAccu<-bestcandidateAccu
+#     }else{
+#         print(paste0("final classification accuracy:",bestAccu ))
+#         final=TRUE
+#       }
+#     }
+#   return (selected)
+# } 
+# 
+# 
+# tictoc::tic()
+#  greedy(AritmiaNormalized)
+# tictoc::toc()
 
 #system.time(
 #  greedy(AritmiaNormalized)
@@ -212,68 +212,68 @@ getFeatures<-function(selected,dataset){
      return (selected)
    }
    
-   
-LocalSearch<-function(x){
-  dataset=x
-  nfeatures<-ncol(x)-1
-  set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
-  SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-  selected<-SolInitial
-  AccuracyActual<-0
-  bestSolFound=FALSE
-  nEval<-0
-  vecina<-0
-  fin<-FALSE
-  
-  AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
-  Accuracyinicial<-AccuracyActual
-  
-#  while((!fin) && (nEval<15000)){
-  while(!fin){
-    if(nEval==15000){
-      break
-    }
-    bestSolFound=FALSE
-    #for( i in seq_along(selected) && (!bestSolFound)){
-    for( i in seq_along(selected)){
-    if(!bestSolFound){
-        vecina<-flip(selected,i)
-        evaluaVecina=modelo(getFeatures(vecina,dataset))
-        nEval<-nEval+1
-    
-     if(evaluaVecina>AccuracyActual){
-       bestSolFound=TRUE
-       selected<-vecina
-       AccuracyActual<-evaluaVecina
-      # break
-     }
-      if(i==nfeatures){
-        fin<-TRUE
-        break
-      }
-    }else{
-      break
-    }
-    }
- #   if((!bestSolFound) && (i==nfeatures)){
-#      fin=TRUE
-  #  }
-  }
-  return (selected)
-}
+#    
+# LocalSearch<-function(x){
+#   dataset=x
+#   nfeatures<-ncol(x)-1
+#   set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
+#   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
+#   selected<-SolInitial
+#   AccuracyActual<-0
+#   bestSolFound=FALSE
+#   nEval<-0
+#   vecina<-0
+#   fin<-FALSE
+#   
+#   AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
+#   Accuracyinicial<-AccuracyActual
+#   
+# #  while((!fin) && (nEval<15000)){
+#   while(!fin){
+#     if(nEval==15000){
+#       break
+#     }
+#     bestSolFound=FALSE
+#     #for( i in seq_along(selected) && (!bestSolFound)){
+#     for( i in seq_along(selected)){
+#     if(!bestSolFound){
+#         vecina<-flip(selected,i)
+#         evaluaVecina=modelo(getFeatures(vecina,dataset))
+#         nEval<-nEval+1
+#     
+#      if(evaluaVecina>AccuracyActual){
+#        bestSolFound=TRUE
+#        selected<-vecina
+#        AccuracyActual<-evaluaVecina
+#       # break
+#      }
+#       if(i==nfeatures){
+#         fin<-TRUE
+#         break
+#       }
+#     }else{
+#       break
+#     }
+#     }
+#  #   if((!bestSolFound) && (i==nfeatures)){
+# #      fin=TRUE
+#   #  }
+#   }
+#   return (selected)
+# }
 
-tictoc::tic()
-solBl<-LocalSearch(AritmiaNormalized)
-tictoc::toc()
+# tictoc::tic()
+# solBl<-LocalSearch(AritmiaNormalized)
+# tictoc::toc()
 
-n<-0
-for( i in (1:5) ){
-  if(i==3)
-    break
-
-    if(!bestSolFound)
-      print(paste0("hola:" ))
-}
+# n<-0
+# for( i in (1:5) ){
+#   if(i==3)
+#     break
+# 
+#     if(!bestSolFound)
+#       print(paste0("hola:" ))
+# }
 
 
 SimulateAnnealing<-function(x){
@@ -281,73 +281,97 @@ SimulateAnnealing<-function(x){
   phi<-0.3
   dataset=x
   nfeatures<-ncol(x)-1
-  set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
+  set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
   SolActual<-SolInitial
-  Tinitial<-(mu*AccuracyInitial)/(-log(phi))
-  Tfinal<-10^-3
-  max_vecinos<- 5*n
+  max_vecinos<- 10*nfeatures
   max_exitos<- 0.1*max_vecinos
   nEval<-0
-  Tactual<-0
-  nEnfriamientos<-15000/(max_vecinos*max_vecinos)
+  Tfinal<-(10^-3)
+ # nEnfriamientos<-15000/(max_vecinos*max_vecinos)
+  M<-15
   sinExito<-FALSE
   randomIndex<-0
   bestGlobal<-SolInitial
+  BestAccuracyGlobal<-0
   AccuracyActual<-0
+  
   AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
+  Tinitial<-(mu*AccuracyInitial)/(-log(phi))
+  Tactual<-Tinitial
   BestAccuracyGlobal<-AccuracyInitial
   AccuracyActual<-AccuracyInitial
   nAceptados<-0
   diferencia<-0
   Paceptacion<-0
+  nIter<-0
   u<-0
+  Tk<-0
   
-  while(!sinExito){ #si iteraccion sin exito termina
-    if(nEval==1500){
+  print(paste0("temperatura Inicial :" ,Tactual))
+  
+  while(Tactual>=Tfinal){ #si iteraccion sin exito termina
+    if(nIter==1500){
       break 
     }
-    if(Tactual<=Tfinal){
+    if(sinExito){
       break
     }
     
-    for(i in seq_along(SolActual)){
+    print(paste("temperatura actual :" ,Tactual))
+    
+    for(i in seq_along(1:max_vecinos)){
       if(nEval==max_vecinos){
+        if(nAceptados==0){
+          sinExito=TRUE
+        }
         break
       }
       if(nAceptados==max_exitos){
         break
       }
+      set.seed(i*282935)
       randomIndex<-sample(1:nfeatures,1,replace=FALSE)
       vecina<-flip(SolActual,randomIndex)
       featuresVecina<-getFeatures(vecina,dataset)
       VecinaAccu<-modelo(featuresVecina)
       nEval<-nEval+1
-      diferencia<-(vecinaAccu-AccuracyActual)
+      diferencia<-(AccuracyActual-VecinaAccu)
       #se la queda si es mejor o si criterio aceptacion ese
       if(diferencia<0){
         SolActual<-vecina
         AccuracyActual<-VecinaAccu
         nAceptados<-nAceptados+1
       }else{
+        set.seed(i*282935)
         u<-sample(0:1,1,replace=FALSE)
-        Paceptacion<-exp(-diferencia/Tactual)
-        if(u<=Paceptacion){
+        Paceptacion<-exp((-diferencia)/Tactual)
+        if(u<Paceptacion){
           SolActual<-vecina
           AccuracyActual<-VecinaAccu
           nAceptados<-nAceptados+1
         }
       }
-       
+      
+      if(AccuracyActual>BestAccuracyGlobal){
+        BestAccuracyGlobal<-AccuracyActual
+        bestGlobal<-SolActual
       }
-        
     }
-   
+    #cuando termina la busqueda local,enfria
+    Beta<-(Tinitial-Tfinal)/(M*Tinitial*Tfinal)
+    Tk<-Tactual/(1+(Beta*Tactual)) 
+    Tactual<-Tk
+    nIter<-nIter+1
+    
   }
-  #cuando termina la busqueda local,enfria
- Beta<-(Tinitial-Tfinal)/(nEnfriamientos*Tinitial*Tfinal)
- Tactual<-Tactual/(1+Beta*Tactual)
-}
+  Lresult<-list(bestGlobal,BestAccuracyGlobal)
+   return(Lresult) 
+  }
 
+  tictoc::tic()
+SolSannealing<-SimulateAnnealing(AritmiaNormalized)
+  tictoc::toc()
+
+  print(paste0("%class mejor encontrado :" ,BestAccuracyGlobal))
   
-
