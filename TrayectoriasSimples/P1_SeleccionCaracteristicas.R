@@ -380,7 +380,7 @@ getFeatures<-function(selected,dataset){
     dataset<-x
     nfeatures<-(ncol(dataset)-1)
     TabuListLength<-(nfeatures/3)
-    TabuListMovements<-list(rep(0,TabuListLength))
+    TabuListMovements<-0
     set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
     SolInitial<-sample(0:1,nfeatures, replace = TRUE)
     SolActual<-SolInitial
@@ -400,6 +400,7 @@ getFeatures<-function(selected,dataset){
       if(length(TabuListMovements)>=TabuListLength){
         TabuListMovements<-TabuListMovements[-1]
       }
+      set.seed(nEval*3+678914)
       selected<-sample(1:nfeatures,30,replace=FALSE)
       
      # for(i in seq_along(selected)){
@@ -434,7 +435,7 @@ getFeatures<-function(selected,dataset){
     if(!isTabu){
       #SolActual
       AccuracyActual<-AccuModelosSorted[[1]]
-      TabuListMovements<-c(bestIndex)
+      TabuListMovements<-c(TabuListMovements,bestIndex)
     }else{
       #comrobar qe el resto no son tabu
       noTareTabu<-sapply(seq_along(AccuModelos),function(x){
