@@ -392,21 +392,19 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
     AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
     AccuracyActual<-AccuracyInitial
     selected<-0
-    
+    resultados<-0
     while(nEval<=1500){
       
       set.seed(67842109)
       selected<-sample(1:nfeatures,30,replace=FALSE)
       
-      for(i in seq_along(1:30)){
-        set.seed(i*282935)
-        randomIndex<-sample(1:nfeatures,1,replace=FALSE)
-        vecina<-flip(SolActual,randomIndex)
+      for(i in seq_along(selected)){
+        vecina<-flip(SolActual,selected[[i]])
         featuresVecina<-getFeatures(vecina,dataset)
         VecinaAccu<-modelo(featuresVecina)
-        
+        resultados<-c(resultados,VecinaAccu)
       }
-      
+      sort(resultados,decreasing = TRUE)
     }
     
   }
