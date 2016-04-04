@@ -137,9 +137,9 @@ test=AritmiaNormalized[-indices,]
 #funcion aplicamodelo
 modelo <- function(x) { 
   set.seed(12345)
-  train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
+  #train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
   set.seed(123456)
-  modelo<-train(Aritmia.class ~x,data=AritmiaNormalized,method="knn", tuneGrid=expand.grid(.k=3),trControl = train5x2)
+  modelo<-train(Aritmia.class ~x,data=AritmiaNormalized,method="knn", tuneGrid=expand.grid(.k=3))
   return(modelo$results$Accuracy)
 }
 
