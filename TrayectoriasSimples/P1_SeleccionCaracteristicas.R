@@ -380,7 +380,7 @@ getFeatures<-function(selected,dataset){
     dataset<-x
     nfeatures<-(ncol(dataset)-1)
     TabuListLength<-(nfeatures/3)
-    TabuListMovements<-0
+    TabuListMovements<-list()
     set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
     SolInitial<-sample(0:1,nfeatures, replace = TRUE)
     SolActual<-SolInitial
@@ -424,13 +424,11 @@ getFeatures<-function(selected,dataset){
     AccuModelosSorted<-sort(AccuModelos,decreasing = TRUE)
     
     #compruebo si el primero es tabu
-    isTabu<-sapply(seq_along(1:length(TabuListMovements)), function(i){
-      if(selected[bestIndex]==TabuListMovements[[i]]){
-        TRUE
-      }else{
+    isTabu<-if(is.na(match(selected[bestIndex],TabuListMovements))){
         FALSE
+      }else{
+        TRUE
       }
-  })
     
     if(!isTabu){
       #SolActual
