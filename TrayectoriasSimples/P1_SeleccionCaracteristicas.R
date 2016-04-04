@@ -375,3 +375,39 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
 
   print(paste0("%class mejor encontrado :" ,BestAccuracyGlobal))
   
+  
+  TabuSearch<-function(x){
+    dataset<-x
+    nfeatures<-ncol(dataset)-1
+    TabuListLength<-nfeatures/3
+    TabuListMovements<-list(rep(0,TabuListLength))
+    set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
+    SolInitial<-sample(0:1,nfeatures, replace = TRUE)
+    SolActual<-SolInitial
+    AccuracyActual<-0
+    bestGlobal<-SolInitial
+    BestAccuracyGlobal<-0
+    nEval<-0
+    
+    AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
+    AccuracyActual<-AccuracyInitial
+    selected<-0
+    
+    while(nEval<=1500){
+      
+      set.seed(67842109)
+      selected<-sample(1:nfeatures,30,replace=FALSE)
+      
+      for(i in seq_along(1:30)){
+        set.seed(i*282935)
+        randomIndex<-sample(1:nfeatures,1,replace=FALSE)
+        vecina<-flip(SolActual,randomIndex)
+        featuresVecina<-getFeatures(vecina,dataset)
+        VecinaAccu<-modelo(featuresVecina)
+        
+      }
+      
+    }
+    
+  }
+  
