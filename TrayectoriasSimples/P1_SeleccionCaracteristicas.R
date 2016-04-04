@@ -275,106 +275,106 @@ getFeatures<-function(selected,dataset){
 #       print(paste0("hola:" ))
 # }
 
-
-SimulateAnnealing<-function(x){
-  mu<-0.3
-  phi<-0.3
-  dataset=x
-  nfeatures<-ncol(x)-1
-  set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
-  SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-  SolActual<-SolInitial
-  max_vecinos<- 10*nfeatures
-  max_exitos<- 0.1*max_vecinos
-  nEval<-0
-  Tfinal<-(10^-3)
- # nEnfriamientos<-15000/(max_vecinos*max_vecinos)
-  M<-15
-  sinExito<-FALSE
-  randomIndex<-0
-  bestGlobal<-SolInitial
-  BestAccuracyGlobal<-0
-  AccuracyActual<-0
-  
-  AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
-  Tinitial<-(mu*AccuracyInitial)/(-log(phi))
-  Tactual<-Tinitial
-  BestAccuracyGlobal<-AccuracyInitial
-  AccuracyActual<-AccuracyInitial
-  nAceptados<-0
-  diferencia<-0
-  Paceptacion<-0
-  nIter<-0
-  u<-0
-  Tk<-0
-  
-  print(paste0("temperatura Inicial :" ,Tactual))
-  
-  while(Tactual>=Tfinal){ #si iteraccion sin exito termina
-    if(nIter==1500){
-      break 
-    }
-    if(sinExito){
-      break
-    }
-    
-    print(paste("temperatura actual :" ,Tactual))
-    
-    for(i in seq_along(1:max_vecinos)){
-      if(nEval==max_vecinos){
-        if(nAceptados==0){
-          sinExito=TRUE
-        }
-        break
-      }
-      if(nAceptados==max_exitos){
-        break
-      }
-      set.seed(i*282935)
-      randomIndex<-sample(1:nfeatures,1,replace=FALSE)
-      vecina<-flip(SolActual,randomIndex)
-      featuresVecina<-getFeatures(vecina,dataset)
-      VecinaAccu<-modelo(featuresVecina)
-      nEval<-nEval+1
-      diferencia<-(AccuracyActual-VecinaAccu)
-      #se la queda si es mejor o si criterio aceptacion ese
-      if(diferencia<0){
-        SolActual<-vecina
-        AccuracyActual<-VecinaAccu
-        nAceptados<-nAceptados+1
-      }else{
-        set.seed(i*282935)
-        u<-sample(0:1,1,replace=FALSE)
-        Paceptacion<-exp((-diferencia)/Tactual)
-        if(u<Paceptacion){
-          SolActual<-vecina
-          AccuracyActual<-VecinaAccu
-          nAceptados<-nAceptados+1
-        }
-      }
-      
-      if(AccuracyActual>BestAccuracyGlobal){
-        BestAccuracyGlobal<-AccuracyActual
-        bestGlobal<-SolActual
-      }
-    }
-    #cuando termina la busqueda local,enfria
-    Beta<-(Tinitial-Tfinal)/(M*Tinitial*Tfinal)
-    Tk<-Tactual/(1+(Beta*Tactual)) 
-    Tactual<-Tk
-    nIter<-nIter+1
-    
-  }
-  Lresult<-list(bestGlobal,BestAccuracyGlobal)
-   return(Lresult) 
-  }
-
-  tictoc::tic()
-SolSannealing<-SimulateAnnealing(AritmiaNormalized)
-  tictoc::toc()
-
-  print(paste0("%class mejor encontrado :" ,BestAccuracyGlobal))
-  
+# 
+# SimulateAnnealing<-function(x){
+#   mu<-0.3
+#   phi<-0.3
+#   dataset=x
+#   nfeatures<-ncol(x)-1
+#   set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
+#   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
+#   SolActual<-SolInitial
+#   max_vecinos<- 10*nfeatures
+#   max_exitos<- 0.1*max_vecinos
+#   nEval<-0
+#   Tfinal<-(10^-3)
+#  # nEnfriamientos<-15000/(max_vecinos*max_vecinos)
+#   M<-15
+#   sinExito<-FALSE
+#   randomIndex<-0
+#   bestGlobal<-SolInitial
+#   BestAccuracyGlobal<-0
+#   AccuracyActual<-0
+#   
+#   AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
+#   Tinitial<-(mu*AccuracyInitial)/(-log(phi))
+#   Tactual<-Tinitial
+#   BestAccuracyGlobal<-AccuracyInitial
+#   AccuracyActual<-AccuracyInitial
+#   nAceptados<-0
+#   diferencia<-0
+#   Paceptacion<-0
+#   nIter<-0
+#   u<-0
+#   Tk<-0
+#   
+#   print(paste0("temperatura Inicial :" ,Tactual))
+#   
+#   while(Tactual>=Tfinal){ #si iteraccion sin exito termina
+#     if(nIter==1500){
+#       break 
+#     }
+#     if(sinExito){
+#       break
+#     }
+#     
+#     print(paste("temperatura actual :" ,Tactual))
+#     
+#     for(i in seq_along(1:max_vecinos)){
+#       if(nEval==max_vecinos){
+#         if(nAceptados==0){
+#           sinExito=TRUE
+#         }
+#         break
+#       }
+#       if(nAceptados==max_exitos){
+#         break
+#       }
+#       set.seed(i*282935)
+#       randomIndex<-sample(1:nfeatures,1,replace=FALSE)
+#       vecina<-flip(SolActual,randomIndex)
+#       featuresVecina<-getFeatures(vecina,dataset)
+#       VecinaAccu<-modelo(featuresVecina)
+#       nEval<-nEval+1
+#       diferencia<-(AccuracyActual-VecinaAccu)
+#       #se la queda si es mejor o si criterio aceptacion ese
+#       if(diferencia<0){
+#         SolActual<-vecina
+#         AccuracyActual<-VecinaAccu
+#         nAceptados<-nAceptados+1
+#       }else{
+#         set.seed(i*282935)
+#         u<-sample(0:1,1,replace=FALSE)
+#         Paceptacion<-exp((-diferencia)/Tactual)
+#         if(u<Paceptacion){
+#           SolActual<-vecina
+#           AccuracyActual<-VecinaAccu
+#           nAceptados<-nAceptados+1
+#         }
+#       }
+#       
+#       if(AccuracyActual>BestAccuracyGlobal){
+#         BestAccuracyGlobal<-AccuracyActual
+#         bestGlobal<-SolActual
+#       }
+#     }
+#     #cuando termina la busqueda local,enfria
+#     Beta<-(Tinitial-Tfinal)/(M*Tinitial*Tfinal)
+#     Tk<-Tactual/(1+(Beta*Tactual)) 
+#     Tactual<-Tk
+#     nIter<-nIter+1
+#     
+#   }
+#   Lresult<-list(bestGlobal,BestAccuracyGlobal)
+#    return(Lresult) 
+#   }
+# 
+#   tictoc::tic()
+# SolSannealing<-SimulateAnnealing(AritmiaNormalized)
+#   tictoc::toc()
+# 
+#   print(paste0("%class mejor encontrado :" ,BestAccuracyGlobal))
+#   
   
   TabuSearch<-function(x){
     dataset<-x
@@ -397,7 +397,7 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
     
     while(nEval<1500){
       
-      if(length(TabuListMovements)==TabuListLength){
+      if(length(TabuListMovements)>=TabuListLength){
         TabuListMovements<-TabuListMovements[-1]
       }
       selected<-sample(1:nfeatures,30,replace=FALSE)
@@ -433,7 +433,7 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
     
     if(!isTabu){
       #SolActual
-      AccuracyActual<-AccuModelos[[1]]
+      AccuracyActual<-AccuModelosSorted[[1]]
       TabuListMovements<-c(bestIndex)
     }else{
       #comrobar qe el resto no son tabu
@@ -459,4 +459,6 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
     return (BestAccuracyGlobal)
   }
 
-  
+     tictoc::tic()
+   SolTabu<-TabuSearch(AritmiaNormalized)
+     tictoc::toc()
