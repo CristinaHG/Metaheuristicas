@@ -406,6 +406,13 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
       }
       sort(resultados,decreasing = TRUE)
     }
-    
+
+    AccuModelos <- sapply(seq_along(selected),  function(i){
+      vecina<-flip(SolActual,selected[[i]])
+      featuresVecina<-getFeatures(vecina,dataset)
+      VecinaAccu<-modelo(featuresVecina)
+      c(VecinaAccu)}
+      ) 
+    AccuModelos<-sort(AccuModelos,decreasing = TRUE)
   }
   
