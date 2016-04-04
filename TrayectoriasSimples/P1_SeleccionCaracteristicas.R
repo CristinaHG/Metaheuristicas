@@ -397,7 +397,9 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
     
     while(nEval<1500){
       
-      
+      if(length(TabuListMovements)==TabuListLength){
+        TabuListMovements<-TabuListMovements[-1]
+      }
       selected<-sample(1:nfeatures,30,replace=FALSE)
       
      # for(i in seq_along(selected)){
@@ -413,13 +415,13 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
       vecina<-flip(SolActual,selected[[i]])
       featuresVecina<-getFeatures(vecina,dataset)
       VecinaAccu<-modelo(featuresVecina)
+      #list(c(vecina),c(VecinaAccu))
       c(VecinaAccu)
       }) 
-    nEval<-(nEval+5)
+    nEval<-(nEval+30)
     bestIndex<-which.max(AccuModelos)
-    AccuModelos<-sort(AccuModelos,decreasing = TRUE)
+    AccuModelosSorted<-sort(AccuModelos,decreasing = TRUE)
     
-    if(selected[[bestIndex]])
     #compruebo si el primero es tabu
     isTabu<-sapply(seq_along(1:length(TabuListMovements)), function(i){
       if(selected[bestIndex]==TabuListMovements[[i]]){
@@ -432,17 +434,29 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
     if(!isTabu){
       #SolActual
       AccuracyActual<-AccuModelos[[1]]
+      TabuListMovements<-c(bestIndex)
     }else{
       #comrobar qe el resto no son tabu
+      noTareTabu<-sapply(seq_along(AccuModelos),function(x){
+          getIndex<-selected[[x]]
+          c(is.na(match(getIndex,TabuListMovements)))
+        })
+      sapply(seq_along(AccuModelos), function(i){
+        if(noTareTabu[[i]]){
+          if(AccuModelos[[i]]>AccuracyActual){
+            AccuracyActual<-AccuModelos[[i]]
+            TabuListMovements<-c(TabuListMovements,selected[[i]])
+          }
+        }
+      })
+  
     }
-    
     if(AccuracyActual> BestAccuracyGlobal){
       BestAccuracyGlobal<-AccuracyActual
       
     }
-    
-    
     }
+    return (BestAccuracyGlobal)
   }
 
   
