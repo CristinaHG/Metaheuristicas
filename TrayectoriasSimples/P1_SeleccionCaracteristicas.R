@@ -378,8 +378,8 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
   
   TabuSearch<-function(x){
     dataset<-x
-    nfeatures<-ncol(dataset)-1
-    TabuListLength<-nfeatures/3
+    nfeatures<-(ncol(dataset)-1)
+    TabuListLength<-(nfeatures/3)
     TabuListMovements<-list(rep(0,TabuListLength))
     set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
     SolInitial<-sample(0:1,nfeatures, replace = TRUE)
@@ -391,28 +391,58 @@ SolSannealing<-SimulateAnnealing(AritmiaNormalized)
     
     AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
     AccuracyActual<-AccuracyInitial
+    BestAccuracyGlobal<-AccuracyInitial
     selected<-0
     resultados<-0
-    while(nEval<=1500){
+    
+    while(nEval<1500){
       
-      set.seed(67842109)
+      
       selected<-sample(1:nfeatures,30,replace=FALSE)
       
-      for(i in seq_along(selected)){
-        vecina<-flip(SolActual,selected[[i]])
-        featuresVecina<-getFeatures(vecina,dataset)
-        VecinaAccu<-modelo(featuresVecina)
-        resultados<-c(resultados,VecinaAccu)
-      }
-      sort(resultados,decreasing = TRUE)
-    }
+     # for(i in seq_along(selected)){
+      #  vecina<-flip(SolActual,selected[[i]])
+       # featuresVecina<-getFeatures(vecina,dataset)
+        #VecinaAccu<-modelo(featuresVecina)
+        #resultados<-c(resultados,VecinaAccu)
+      #}
+      #sort(resultados,decreasing = TRUE)
+    #}
 
     AccuModelos <- sapply(seq_along(selected),  function(i){
       vecina<-flip(SolActual,selected[[i]])
       featuresVecina<-getFeatures(vecina,dataset)
       VecinaAccu<-modelo(featuresVecina)
-      c(VecinaAccu)}
-      ) 
+      c(VecinaAccu)
+      }) 
+    nEval<-(nEval+5)
+    bestIndex<-which.max(AccuModelos)
     AccuModelos<-sort(AccuModelos,decreasing = TRUE)
+    
+    if(selected[[bestIndex]])
+    #compruebo si el primero es tabu
+    isTabu<-sapply(seq_along(1:length(TabuListMovements)), function(i){
+      if(selected[bestIndex]==TabuListMovements[[i]]){
+        TRUE
+      }else{
+        FALSE
+      }
+  })
+    
+    if(!isTabu){
+      #SolActual
+      AccuracyActual<-AccuModelos[[1]]
+    }else{
+      #comrobar qe el resto no son tabu
+    }
+    
+    if(AccuracyActual> BestAccuracyGlobal){
+      BestAccuracyGlobal<-AccuracyActual
+      
+    }
+    
+    
+    }
   }
+
   
