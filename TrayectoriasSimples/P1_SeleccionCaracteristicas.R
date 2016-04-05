@@ -143,6 +143,7 @@ predictionsWDBCInter<-sapply(seq_along(1:5),function(i) list(pred<-predict(model
 
 
 
+
 #modelosTrainvstest[1,2][[1]][[1]][[2]]                          
 #stopCluster(cl)
 
@@ -352,8 +353,9 @@ LocalSearch<-function(x){
   nEval<-0
   vecina<-0
   fin<-FALSE
-  
-  AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
+  modeloActual<-Adjust3nn(getFeatures(selected,dataset),dataset,dataset[[ncol(dataset)]])
+  bestmodel<-0
+  AccuracyActual<-modeloActual$results$Accuracy #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
   Accuracyinicial<-AccuracyActual
   
 #  while((!fin) && (nEval<15000)){
@@ -366,13 +368,16 @@ LocalSearch<-function(x){
     for( i in seq_along(selected)){
     if(!bestSolFound){
         vecina<-flip(selected,i)
-        evaluaVecina=modelo(getFeatures(vecina,dataset))
+        #evaluaVecina=modelo(getFeatures(vecina,dataset))
+        modeloActual<-Adjust3nn(getFeatures(vecina,dataset),dataset,dataset[[ncol(dataset)]])
+        evaluaVecina<-modeloActual$results$Accuracy
         nEval<-nEval+1
     
      if(evaluaVecina>AccuracyActual){
        bestSolFound=TRUE
        selected<-vecina
        AccuracyActual<-evaluaVecina
+       bestmodel<-modeloActual
       # break
      }
       if(i==nfeatures){
@@ -387,7 +392,7 @@ LocalSearch<-function(x){
 #      fin=TRUE
   #  }
   }
-  return (selected)
+  return (list(bestmodel,selected))
 }
 
 tictoc::tic()
