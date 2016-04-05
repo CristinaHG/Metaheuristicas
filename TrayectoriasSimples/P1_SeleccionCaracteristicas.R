@@ -431,8 +431,10 @@ getFeatures<-function(selected,dataset){
     
     if(!isTabu){
       #SolActual
+      if(AccuModelosSorted[[1]]>AccuracyInitial){ #criterio aspiración
       AccuracyActual<-AccuModelosSorted[[1]]
       TabuListMovements<-c(TabuListMovements,bestIndex)
+      }
     }else{
       #comrobar qe el resto no son tabu
       noTareTabu<-sapply(seq_along(AccuModelos),function(x){
