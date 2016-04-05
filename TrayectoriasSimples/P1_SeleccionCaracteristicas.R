@@ -1,10 +1,10 @@
+#leemos bases de datos
 library(foreign)
 Aritmia<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/arrhythmia.arff")
 wdbc<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/wdbc.arff")
-View(wdbc)
+Libras<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/movement_libras.arff")
 
-#wdbc<-data.frame(wdbc[ ,-1],wdbc$class) #ponemos la clase al final
-
+#-------------------------------normalización y limpieza de los datos--------------------------------
 normalize <- function(x) { 
   x <- as.matrix(as.numeric(x))
   minAttr=apply(x, 2, min)
@@ -15,20 +15,22 @@ normalize <- function(x) {
   return (x)
 } 
 
-#F(s)=alphaTA-(1-aplha)TR donde TR es treduccion (por ej alpha=0.8)
 #quit class column to avoid normalizing it
 nAritmia<-Aritmia[ ,-ncol(Aritmia)]
 nWdbc<-wdbc[ , -1]
+nLibras<-Libras[ ,-ncol(Libras)]
 #normalizing
 nAritmia<-apply(nAritmia,2,normalize)
 nWdbc<-apply(nWdbc,2,normalize)
+nLibras<-apply(nLibras,2,normalize)
 #adding class column to normalized data
 AritmiaNormalized<-data.frame(nAritmia,Aritmia$class)
 wdbcNormalized<-data.frame(nWdbc,wdbc$class)
+LibrasNormalized<-data.frame(nLibras,Libras$Class)
 #deleting columns wich row's values are all the same
 AritmiaNormalized=AritmiaNormalized[sapply(AritmiaNormalized, function(x) length(unique(x))>1)]
 wdbcNormalized=wdbcNormalized[sapply(wdbcNormalized, function(x) length(unique(x))>1)]
-
+LibrasNormalized=LibrasNormalized[sapply(LibrasNormalized, function(x) length(unique(x))>1)]
 
 partitionDistribution <- function(partition) {
   print(paste('Training: ', nrow(partition$training), 'instances'))
@@ -37,56 +39,112 @@ partitionDistribution <- function(partition) {
   print(summary(partition$test$Aritmia.class)  / nrow(partition$test) * 100)
 }
 
-# Particionamiento estratificado usando el paquete caret
+# usamos particionamiento estratificado usando el paquete caret
 library(caret)
 
-set.seed(123456)
-indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
-training=AritmiaNormalized[indices,]
-test=AritmiaNormalized[-indices,]
-
-
-# set.seed(123456)
-# indices <- createDataPartition(wdbcNormalized$wdbc.class, p = 0.50, list = FALSE)
-# training=AritmiaNormalized[indices,]
-# test=AritmiaNormalized[-indices,]
-# 
-# 
-# tictoc::tic()
-# Solgreedy<-greedy(wdbcNormalized)
-# tictoc::toc()
-# 
-# trainList<-list()
-# SolGreedyList<-list()
-# Greedymodels<-sapply(seq_along(1:5), function(i){
-#   set.seed(i*9876543)
-#   indices<-createDataPartition(wdbcNormalized$wdbc.class, p = 0.50, list = FALSE)
-#   training=AritmiaNormalized[indices,]
-#   test=AritmiaNormalized[-indices,]
-# })
-
-modelos<-list()
-times<-list()
-for(i in seq_along(1:2)){
+# library(parallel)
+# # Calculate the number of cores
+# no_cores <- detectCores() -1
+# # Initiate cluster
+# cl <- makeCluster(no_cores)
+################################obtener los mejores modelos para cada algoritmo haciendo 5x2cv ###############################
+#######Aquí obtenemos el tiempo, la solucion y el modelo para cada partición#######
+##########ALGORITMO GREEDY: #########
+#----------------------------------Para wdbc---------------------------------------
+modelosTrainvstest <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
   training=wdbcNormalized[indices,]
   test=wdbcNormalized[-indices,]
   
-  time<-system.time(
-  modelo<-greedy(training))
-  
-  times<-c(times,unlist(time))
-  modelos<-c(modelos,unlist(modelo))
-}
-modelos <- sapply(seq_along(1:2),  function(i){
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+  })
+
+modelosTestvsTrain <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
-  training=wdbcNormalized[indices,]
-  test=wdbcNormalized[-indices,]
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
   
-  time<-system.time(modelo<-greedy(training))
-  list(list(modelo),list(time))})
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------------------Para movement libras----------------------------------
+modelosTrainvstestML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------------------Para Arritmia----------------------------------------
+modelosTrainvstestARR <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrain <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+#-----------------------calculamos acierto de train y test y tasa de reduccion: ----------------------------------------------
+
+#--------------------------------------  WDBC:  -------------
+AccuTrainWDBCGreedySinInter<-list(modelosTrainvstest[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstest[1,2][[1]][[1]]$results$Accuracy,
+                          modelosTrainvstest[1,3][[1]][[1]]$results$Accuracy, modelosTrainvstest[1,4][[1]][[1]]$results$Accuracy,
+                          modelosTrainvstest[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainWDBCGreedyInter<-list(modelosTestvsTrain[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrain[1,2][[1]][[1]]$results$Accuracy,
+                               modelosTestvsTrain[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrain[1,4][[1]][[1]]$results$Accuracy,
+                               modelosTestvsTrain[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainWDBCGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstest[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})                  
+
+ReductionTrainWDBCGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrain[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})  
+
+tiemposWDBCGreedySinInter<-modelosTrainvstest[2,]
+tiemposWDBCGreedyInter<-modelosTestvsTrain[2,]
+
+
+#acceder al conjunto de test: modelosTrainvstest[3,i][[1]]
+
+predictionsWDBCsInter<-sapply(seq_along(1:5),function(i) list(pred<-predict(modelosTrainvstest[1,i][[1]][[1]])),modelosTrainvstest[3,i][[1]])
+predictionsWDBCInter<-sapply(seq_along(1:5),function(i) list(pred<-predict(modelosTestvsTrain[1,i][[1]][[1]])),modelosTestvsTrain[3,i][[1]])
+
+
+
+#modelosTrainvstest[1,2][[1]][[1]][[2]]                          
+#stopCluster(cl)
 
 #para ver el tiempo del 2 modelo: modelos[2,2]
 #[1] "final classification accuracy:0.983950607781112"
@@ -103,13 +161,7 @@ modelos <- sapply(seq_along(1:2),  function(i){
 
 
 
-# # Creación de múltiples particiones
-# set.seed(123456)
-# folds <-createFolds(AritmiaNormalized$Aritmia.class, k = 1)
-# particion <- lapply(folds,  function(indices) list(training=AritmiaNormalized[-indices,], test=AritmiaNormalized[indices,]))
-# #particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
-# partitionDistribution(particion$Fold1)
-# 
+
 Adjust3nn<-function(x,y,z){
   set.seed(12345)
   modelo<-train(z ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
@@ -253,7 +305,7 @@ bestmodel<-0
         final=TRUE
       }
     }
-  return (bestmodel)
+  return (list(bestmodel,selected))
 } 
 
 
@@ -288,68 +340,68 @@ getFeatures<-function(selected,dataset){
      return (selected)
    }
    
-#    
-# LocalSearch<-function(x){
-#   dataset=x
-#   nfeatures<-ncol(x)-1
-#   set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
-#   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-#   selected<-SolInitial
-#   AccuracyActual<-0
-#   bestSolFound=FALSE
-#   nEval<-0
-#   vecina<-0
-#   fin<-FALSE
-#   
-#   AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
-#   Accuracyinicial<-AccuracyActual
-#   
-# #  while((!fin) && (nEval<15000)){
-#   while(!fin){
-#     if(nEval==15000){
-#       break
-#     }
-#     bestSolFound=FALSE
-#     #for( i in seq_along(selected) && (!bestSolFound)){
-#     for( i in seq_along(selected)){
-#     if(!bestSolFound){
-#         vecina<-flip(selected,i)
-#         evaluaVecina=modelo(getFeatures(vecina,dataset))
-#         nEval<-nEval+1
-#     
-#      if(evaluaVecina>AccuracyActual){
-#        bestSolFound=TRUE
-#        selected<-vecina
-#        AccuracyActual<-evaluaVecina
-#       # break
-#      }
-#       if(i==nfeatures){
-#         fin<-TRUE
-#         break
-#       }
-#     }else{
-#       break
-#     }
-#     }
-#  #   if((!bestSolFound) && (i==nfeatures)){
-# #      fin=TRUE
-#   #  }
-#   }
-#   return (selected)
-# }
+   
+LocalSearch<-function(x){
+  dataset=x
+  nfeatures<-ncol(x)-1
+  set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
+  SolInitial<-sample(0:1,nfeatures, replace = TRUE)
+  selected<-SolInitial
+  AccuracyActual<-0
+  bestSolFound=FALSE
+  nEval<-0
+  vecina<-0
+  fin<-FALSE
+  
+  AccuracyActual<-modelo(getFeatures(selected,dataset)) #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
+  Accuracyinicial<-AccuracyActual
+  
+#  while((!fin) && (nEval<15000)){
+  while(!fin){
+    if(nEval==15000){
+      break
+    }
+    bestSolFound=FALSE
+    #for( i in seq_along(selected) && (!bestSolFound)){
+    for( i in seq_along(selected)){
+    if(!bestSolFound){
+        vecina<-flip(selected,i)
+        evaluaVecina=modelo(getFeatures(vecina,dataset))
+        nEval<-nEval+1
+    
+     if(evaluaVecina>AccuracyActual){
+       bestSolFound=TRUE
+       selected<-vecina
+       AccuracyActual<-evaluaVecina
+      # break
+     }
+      if(i==nfeatures){
+        fin<-TRUE
+        break
+      }
+    }else{
+      break
+    }
+    }
+ #   if((!bestSolFound) && (i==nfeatures)){
+#      fin=TRUE
+  #  }
+  }
+  return (selected)
+}
 
-# tictoc::tic()
-# solBl<-LocalSearch(AritmiaNormalized)
-# tictoc::toc()
+tictoc::tic()
+solBl<-LocalSearch(AritmiaNormalized)
+tictoc::toc()
 
-# n<-0
-# for( i in (1:5) ){
-#   if(i==3)
-#     break
-# 
-#     if(!bestSolFound)
-#       print(paste0("hola:" ))
-# }
+n<-0
+for( i in (1:5) ){
+  if(i==3)
+    break
+
+    if(!bestSolFound)
+      print(paste0("hola:" ))
+}
 
 # 
 # SimulateAnnealing<-function(x){
@@ -508,7 +560,7 @@ getFeatures<-function(selected,dataset){
     
     if(!isTabu){
       #SolActual
-      if(AccuModelosSorted[[1]]>AccuracyInitial){ #criterio aspiración
+      if(AccuModelosSorted[[1]]>AccuracyActual){ #criterio aspiración
       AccuracyActual<-AccuModelosSorted[[1]]
       TabuListMovements<-c(TabuListMovements,bestIndex)
       }
@@ -523,6 +575,10 @@ getFeatures<-function(selected,dataset){
           if(AccuModelos[[i]]>AccuracyActual){
             AccuracyActual<-AccuModelos[[i]]
             TabuListMovements<-c(TabuListMovements,selected[[i]])
+          }else{ #aunque sea tabú me la puedo quedar si mejora la global
+            if(AccuModelos[[i]]>BestAccuracyGlobal){
+              AccuracyActual<-AccuModelos[[i]]
+            }
           }
         }
       })
