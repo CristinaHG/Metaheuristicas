@@ -38,6 +38,17 @@ indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list =
 training=AritmiaNormalized[indices,]
 test=AritmiaNormalized[-indices,]
 
+i<-1
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+
+
+
+
+
+
 # # Creación de múltiples particiones
 # set.seed(123456)
 # folds <-createFolds(AritmiaNormalized$Aritmia.class, k = 1)
@@ -45,11 +56,11 @@ test=AritmiaNormalized[-indices,]
 # #particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
 # partitionDistribution(particion$Fold1)
 # 
-# Adjust3nn<-function(x){
-#   set.seed(12345)
-#   modelo<-train(Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
-#   return(modelo)
-# }
+Adjust3nn<-function(x){
+  set.seed(12345)
+  modelo<-train(Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
+  return(modelo)
+}
 # 
 # Do5x2cv<-function(partition){
 #   #idea:
@@ -151,19 +162,24 @@ modelo <- function(x) {
 #   bestcandidateAccu<-0
 #   bestcandidateIndex<-0
 #   bestAccu<-0
+#bestCandidatemodel<-0
+#bestmodel<-0
 #   final<-FALSE
 #   
 #   while( !final) {
 #     
 #     bestcandidateAccu<-0
+#     modelo<-0
 #     evalua<-0
 #     for( i in 1:(ncol(AritmiaNormalized)-1)){
 #       if(selected[i]!=1){
-#           evalua=modelo(caracteristicasYaSel+AritmiaNormalized[[i]])
+#           modelo=Adjust3nn(caracteristicasYaSel+AritmiaNormalized[[i]])
+  #        evalua=modelo$results$Accuracy
 #         if((evalua > bestcandidateAccu)){
 #           bestcandidateFeature<-AritmiaNormalized[[i]]
 #           bestcandidateAccu<-evalua
 #           bestcandidateIndex<-i
+#           bestCandidatemodel<-modelo
 #         }
 #       }
 #     }
@@ -171,6 +187,7 @@ modelo <- function(x) {
 #         selected[bestcandidateIndex]=1
 #         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
 #         bestAccu<-bestcandidateAccu
+#          bestmodel<-bestCandidatemodel
 #     }else{
 #         print(paste0("final classification accuracy:",bestAccu ))
 #         final=TRUE
