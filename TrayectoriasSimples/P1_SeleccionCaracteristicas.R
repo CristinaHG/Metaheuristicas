@@ -38,16 +38,24 @@ indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list =
 training=AritmiaNormalized[indices,]
 test=AritmiaNormalized[-indices,]
 
+# trainList<-list()
+# SolGreedyList<-list()
+# sapply(seq_along(1:5), function(i){
+#   set.seed(i*9876543)
+#   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
+#   training=AritmiaNormalized[indices,]
+#   test=AritmiaNormalized[-indices,]
+# 
+# })
 
-sapply(seq_along(1:5), function(i){
-  set.seed(i*9876543)
-  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
-  training=AritmiaNormalized[indices,]
-  test=AritmiaNormalized[-indices,]
+#   tictoc::tic()
+#   SolGreedy<-greedy(training)
+#   tictoc::toc()
+#   
+#   SolGreedyList<-c(SolGreedyList,SolGreedy)
+#   trainList<-c(trainList,SolGreedy$results$Accuracy)
 
-  
 
-})
 
 
 
@@ -58,9 +66,9 @@ sapply(seq_along(1:5), function(i){
 # #particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
 # partitionDistribution(particion$Fold1)
 # 
-Adjust3nn<-function(x){
+Adjust3nn<-function(x,y){
   set.seed(12345)
-  modelo<-train(Aritmia.class ~.,data=x,method="knn",tuneGrid=expand.grid(.k=3))
+  modelo<-train(Aritmia.class ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
   return(modelo)
 }
 # 
@@ -157,7 +165,8 @@ modelo <- function(x) {
 
 #algoritmo greedy
 greedy <- function(x) { 
-  selected<-as.vector(rep(0,ncol(x)-1))
+  dataset<-x
+  selected<-as.vector(rep(0,ncol(dataset)-1))
   #df<-data.frame(colnames(AritmiaNormalized))
   caracteristicasYaSel<-0
   bestcandidateFeature<-0
@@ -173,12 +182,12 @@ bestmodel<-0
     bestcandidateAccu<-0
     modelo<-0
     evalua<-0
-    for( i in 1:(ncol(AritmiaNormalized)-1)){
+    for( i in 1:(ncol(dataset)-1)){
       if(selected[i]!=1){
-         modelo=Adjust3nn(caracteristicasYaSel+AritmiaNormalized[[i]])
+         modelo=Adjust3nn((caracteristicasYaSel+dataset[[i]]),dataset)
          evalua=modelo$results$Accuracy
         if((evalua > bestcandidateAccu)){
-          bestcandidateFeature<-AritmiaNormalized[[i]]
+          bestcandidateFeature<-dataset[[i]]
           bestcandidateAccu<-evalua
           bestcandidateIndex<-i
           bestCandidatemodel<-modelo
