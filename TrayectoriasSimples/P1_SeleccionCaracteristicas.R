@@ -38,14 +38,16 @@ indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list =
 training=AritmiaNormalized[indices,]
 test=AritmiaNormalized[-indices,]
 
-i<-1
+
+sapply(seq_along(1:5), function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
   training=AritmiaNormalized[indices,]
   test=AritmiaNormalized[-indices,]
 
+  
 
-
+})
 
 
 
@@ -154,52 +156,52 @@ modelo <- function(x) {
 }
 
 #algoritmo greedy
-# greedy <- function(x) { 
-#   selected<-as.vector(rep(0,ncol(x)-1))
-#   #df<-data.frame(colnames(AritmiaNormalized))
-#   caracteristicasYaSel<-0
-#   bestcandidateFeature<-0
-#   bestcandidateAccu<-0
-#   bestcandidateIndex<-0
-#   bestAccu<-0
-#bestCandidatemodel<-0
-#bestmodel<-0
-#   final<-FALSE
-#   
-#   while( !final) {
-#     
-#     bestcandidateAccu<-0
-#     modelo<-0
-#     evalua<-0
-#     for( i in 1:(ncol(AritmiaNormalized)-1)){
-#       if(selected[i]!=1){
-#           modelo=Adjust3nn(caracteristicasYaSel+AritmiaNormalized[[i]])
-  #        evalua=modelo$results$Accuracy
-#         if((evalua > bestcandidateAccu)){
-#           bestcandidateFeature<-AritmiaNormalized[[i]]
-#           bestcandidateAccu<-evalua
-#           bestcandidateIndex<-i
-#           bestCandidatemodel<-modelo
-#         }
-#       }
-#     }
-#     if(bestcandidateAccu>bestAccu){
-#         selected[bestcandidateIndex]=1
-#         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
-#         bestAccu<-bestcandidateAccu
-#          bestmodel<-bestCandidatemodel
-#     }else{
-#         print(paste0("final classification accuracy:",bestAccu ))
-#         final=TRUE
-#       }
-#     }
-#   return (selected)
-# } 
-# 
-# 
-# tictoc::tic()
-#  greedy(AritmiaNormalized)
-# tictoc::toc()
+greedy <- function(x) { 
+  selected<-as.vector(rep(0,ncol(x)-1))
+  #df<-data.frame(colnames(AritmiaNormalized))
+  caracteristicasYaSel<-0
+  bestcandidateFeature<-0
+  bestcandidateAccu<-0
+  bestcandidateIndex<-0
+  bestAccu<-0
+bestCandidatemodel<-0
+bestmodel<-0
+  final<-FALSE
+  
+  while( !final) {
+    
+    bestcandidateAccu<-0
+    modelo<-0
+    evalua<-0
+    for( i in 1:(ncol(AritmiaNormalized)-1)){
+      if(selected[i]!=1){
+         modelo=Adjust3nn(caracteristicasYaSel+AritmiaNormalized[[i]])
+         evalua=modelo$results$Accuracy
+        if((evalua > bestcandidateAccu)){
+          bestcandidateFeature<-AritmiaNormalized[[i]]
+          bestcandidateAccu<-evalua
+          bestcandidateIndex<-i
+          bestCandidatemodel<-modelo
+        }
+      }
+    }
+    if(bestcandidateAccu>bestAccu){
+        selected[bestcandidateIndex]=1
+        caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
+        bestAccu<-bestcandidateAccu
+        bestmodel<-bestCandidatemodel
+    }else{
+        print(paste0("final classification accuracy:",bestAccu ))
+        final=TRUE
+      }
+    }
+  return (bestmodel)
+} 
+
+
+tictoc::tic()
+ greedy(AritmiaNormalized)
+tictoc::toc()
 
 #system.time(
 #  greedy(AritmiaNormalized)
