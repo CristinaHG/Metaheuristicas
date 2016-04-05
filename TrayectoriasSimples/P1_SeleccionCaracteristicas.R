@@ -318,6 +318,7 @@ time<-system.time(
  sol1<-greedy(wdbcNormalized)
 )
 
+#---------------------función que me devuelve las características del data set a partir de una codificación binaria
 getFeatures<-function(selected,dataset){
   featuresList<-lapply(seq_along(selected), function(i) {
     if (selected[[i]]==1) {
@@ -325,16 +326,11 @@ getFeatures<-function(selected,dataset){
   }) 
   
   features<-Reduce('+',Filter(Negate(is.null), featuresList))
-  #features<-0
-  #for(i in seq_along(featuresList)){
-   # if(!(is.null(featuresList[[i]])))
-   #   features<-features+ unlist(featuresList[[i]])
-  #}
-  
+
   return (features)
 }
 
-   
+#-----------------------función que genera vecina------------------   
    flip<-function(selected,i){
      if(selected[[i]]==1){ selected[[i]]<-0
      }else{ selected[[i]]<-1}
@@ -345,7 +341,7 @@ getFeatures<-function(selected,dataset){
 LocalSearch<-function(x){
   dataset=x
   nfeatures<-ncol(x)-1
-  set.seed(13456) #semilla para que salva pueda obtener la misma solución inicial
+  set.seed(13456) #semilla para que Salva pueda obtener la misma solución inicial
   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
   selected<-SolInitial
   AccuracyActual<-0
@@ -355,7 +351,7 @@ LocalSearch<-function(x){
   fin<-FALSE
   modeloActual<-Adjust3nn(getFeatures(selected,dataset),dataset,dataset[[ncol(dataset)]])
   bestmodel<-0
-  AccuracyActual<-modeloActual$results$Accuracy #da igual no quitarle la clase al dataset pq selected llega hasta dataset-1
+  AccuracyActual<-modeloActual$results$Accuracy 
   Accuracyinicial<-AccuracyActual
   
 #  while((!fin) && (nEval<15000)){
@@ -399,14 +395,7 @@ tictoc::tic()
 solBl<-LocalSearch(AritmiaNormalized)
 tictoc::toc()
 
-n<-0
-for( i in (1:5) ){
-  if(i==3)
-    break
 
-    if(!bestSolFound)
-      print(paste0("hola:" ))
-}
 
 # 
 # SimulateAnnealing<-function(x){
