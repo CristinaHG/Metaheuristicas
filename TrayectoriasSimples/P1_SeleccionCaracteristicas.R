@@ -103,7 +103,7 @@ modelosTrainvstestARR <- sapply(seq_along(1:5),  function(i){
   list(Solucionmodelo,time,test)
 })
 
-modelosTestvsTrain <- sapply(seq_along(1:5),  function(i){
+modelosTestvsTrainARR <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
   test=AritmiaNormalized[indices,]
@@ -138,9 +138,13 @@ tiemposWDBCGreedyInter<-modelosTestvsTrain[2,]
 
 #acceder al conjunto de test: modelosTrainvstest[3,i][[1]]
 
-predictionsWDBCsInter<-sapply(seq_along(1:5),function(i) list(pred<-predict(modelosTrainvstest[1,i][[1]][[1]])),modelosTrainvstest[3,i][[1]])
-predictionsWDBCInter<-sapply(seq_along(1:5),function(i) list(pred<-predict(modelosTestvsTrain[1,i][[1]][[1]])),modelosTestvsTrain[3,i][[1]])
+predictionsWDBCsInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstest[1,i][[1]][[1]],modelosTrainvstest[3,i][[1]])))
+postLIBRASsInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCsInter[[i]],modelosTrainvstest[3,i][[1]]$wdbc.class)))
+predictionsWDBCInter<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrain[1,i][[1]][[1]], modelosTestvsTrain[3,i][[1]])))
+postLIBRASInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCInter[[i]],modelosTestvsTrain[3,i][[1]]$wdbc.class)))
 
+l1TestWDBC<-list(postLIBRASsInter[[1]][[1]],postLIBRASsInter[[2]][[1]],postLIBRASsInter[[3]][[1]],postLIBRASsInter[[4]][[1]],postLIBRASsInter[[5]][[1]])
+l2TestWDBC<-list(postLIBRASInter[[1]][[1]],postLIBRASInter[[2]][[1]],postLIBRASInter[[3]][[1]],postLIBRASInter[[4]][[1]],postLIBRASInter[[5]][[1]])
 
 #--------------------------------------  MOVEMENT LIBRAS:  -------------
 
@@ -164,9 +168,43 @@ tiemposLIBRASGreedySinInter<-modelosTrainvstestML[2,]
 tiemposLIBRASGreedyInter<-modelosTestvsTrainML[2,]
 
 
+predictionsLIBRASsInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestML[1,i][[1]][[1]],modelosTrainvstestML[3,i][[1]])))
+postLIBRASsInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsLIBRASsInter[[i]],modelosTrainvstestML[3,i][[1]]$Libras.Class)))
+predictionsLIBRASInter<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainML[1,i][[1]][[1]], modelosTestvsTrainML[3,i][[1]])))
+postLIBRASInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsLIBRASInter[[i]],modelosTestvsTrainML[3,i][[1]]$Libras.Class)))
+
+l1Test<-list(postLIBRASsInter[[1]][[1]],postLIBRASsInter[[2]][[1]],postLIBRASsInter[[3]][[1]],postLIBRASsInter[[4]][[1]],postLIBRASsInter[[5]][[1]])
+l2Test<-list(postLIBRASInter[[1]][[1]],postLIBRASInter[[2]][[1]],postLIBRASInter[[3]][[1]],postLIBRASInter[[4]][[1]],postLIBRASInter[[5]][[1]])
+
+#-------------------------------------------ARRITMIA-------------------------------------
+
+AccuTrainARRGreedySinInter<-list(modelosTrainvstestARR[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstestARR[1,2][[1]][[1]]$results$Accuracy,
+                                 modelosTrainvstestARR[1,3][[1]][[1]]$results$Accuracy, modelosTrainvstestARR[1,4][[1]][[1]]$results$Accuracy,
+                                 modelosTrainvstestARR[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainARRGreedyInter<-list(modelosTestvsTrainARR[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrainARR[1,2][[1]][[1]]$results$Accuracy,
+                              modelosTestvsTrainARR[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrainARR[1,4][[1]][[1]]$results$Accuracy,
+                              modelosTestvsTrainARR[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainARRGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestARR[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})                  
+
+ReductionTrainARRGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainARR[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})  
+
+tiemposARRGreedySinInter<-modelosTrainvstestARR[2,]
+tiemposARRGreedyInter<-modelosTestvsTrainARR[2,]
 
 
+predictionsARRsInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR[1,i][[1]][[1]],modelosTrainvstestARR[3,i][[1]])))
+postARRsInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRsInter[[i]],modelosTrainvstestARR[3,i][[1]]$Aritmia.class)))
+predictionsARRInter<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainARR[1,i][[1]][[1]], modelosTestvsTrainARR[3,i][[1]])))
+postARRInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter[[i]],modelosTestvsTrainARR[3,i][[1]]$Aritmia.class)))
 
+l1TestArr<-list(postARRsInter[[1]][[1]],postARRsInter[[2]][[1]],postARRsInter[[3]][[1]],postARRsInter[[4]][[1]],postARRsInter[[5]][[1]])
+l2TestArr<-list(postARRInter[[1]][[1]],postARRInter[[2]][[1]],postARRInter[[3]][[1]],postARRInter[[4]][[1]],postARRInter[[5]][[1]])
 
 
 
