@@ -142,6 +142,32 @@ predictionsWDBCsInter<-sapply(seq_along(1:5),function(i) list(pred<-predict(mode
 predictionsWDBCInter<-sapply(seq_along(1:5),function(i) list(pred<-predict(modelosTestvsTrain[1,i][[1]][[1]])),modelosTestvsTrain[3,i][[1]])
 
 
+#--------------------------------------  MOVEMENT LIBRAS:  -------------
+
+AccuTrainLIBRASGreedySinInter<-list(modelosTrainvstestML[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstestML[1,2][[1]][[1]]$results$Accuracy,
+                                    modelosTrainvstestML[1,3][[1]][[1]]$results$Accuracy, modelosTrainvstestML[1,4][[1]][[1]]$results$Accuracy,
+                                    modelosTrainvstestML[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainLIBRASGreedyInter<-list(modelosTestvsTrainML[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrainML[1,2][[1]][[1]]$results$Accuracy,
+                                 modelosTestvsTrainML[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrainML[1,4][[1]][[1]]$results$Accuracy,
+                                 modelosTestvsTrainML[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainLIBRASGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstestML[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})                  
+
+ReductionTrainLIBRASGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainML[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})  
+
+tiemposLIBRASGreedySinInter<-modelosTrainvstestML[2,]
+tiemposLIBRASGreedyInter<-modelosTestvsTrainML[2,]
+
+
+
+
+
+
 
 
 #modelosTrainvstest[1,2][[1]][[1]][[2]]                          
