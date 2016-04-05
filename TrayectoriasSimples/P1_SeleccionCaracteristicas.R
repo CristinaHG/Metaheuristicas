@@ -1,6 +1,9 @@
 library(foreign)
 Aritmia<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/arrhythmia.arff")
-#View(Aritmia)
+wdbc<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/wdbc.arff")
+View(wdbc)
+
+#wdbc<-data.frame(wdbc[ ,-1],wdbc$class) #ponemos la clase al final
 
 normalize <- function(x) { 
   x <- as.matrix(as.numeric(x))
@@ -15,13 +18,17 @@ normalize <- function(x) {
 #F(s)=alphaTA-(1-aplha)TR donde TR es treduccion (por ej alpha=0.8)
 #quit class column to avoid normalizing it
 nAritmia<-Aritmia[ ,-ncol(Aritmia)]
+nWdbc<-wdbc[ , -1]
 #normalizing
 nAritmia<-apply(nAritmia,2,normalize)
+nWdbc<-apply(nWdbc,2,normalize)
 #adding class column to normalized data
 AritmiaNormalized<-data.frame(nAritmia,Aritmia$class)
-
+wdbcNormalized<-data.frame(nWdbc,wdbc$class)
 #deleting columns wich row's values are all the same
 AritmiaNormalized=AritmiaNormalized[sapply(AritmiaNormalized, function(x) length(unique(x))>1)]
+wdbcNormalized=wdbcNormalized[sapply(wdbcNormalized, function(x) length(unique(x))>1)]
+
 
 partitionDistribution <- function(partition) {
   print(paste('Training: ', nrow(partition$training), 'instances'))
@@ -38,15 +45,52 @@ indices <- createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list =
 training=AritmiaNormalized[indices,]
 test=AritmiaNormalized[-indices,]
 
+
+# set.seed(123456)
+# indices <- createDataPartition(wdbcNormalized$wdbc.class, p = 0.50, list = FALSE)
+# training=AritmiaNormalized[indices,]
+# test=AritmiaNormalized[-indices,]
+# 
+# 
+# tictoc::tic()
+# Solgreedy<-greedy(wdbcNormalized)
+# tictoc::toc()
+# 
 # trainList<-list()
 # SolGreedyList<-list()
-# sapply(seq_along(1:5), function(i){
+# Greedymodels<-sapply(seq_along(1:5), function(i){
 #   set.seed(i*9876543)
-#   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p = 0.50, list = FALSE)
+#   indices<-createDataPartition(wdbcNormalized$wdbc.class, p = 0.50, list = FALSE)
 #   training=AritmiaNormalized[indices,]
 #   test=AritmiaNormalized[-indices,]
-# 
 # })
+
+modelos<-list()
+times<-list()
+for(i in seq_along(1:2)){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  
+  time<-system.time(
+  modelo<-greedy(training))
+  
+  times<-c(times,unlist(time))
+  modelos<-c(modelos,unlist(modelo))
+}
+modelos <- sapply(seq_along(1:2),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  
+  time<-system.time(modelo<-greedy(training))
+  list(list(modelo),list(time))})
+
+#para ver el tiempo del 2 modelo: modelos[2,2]
+#[1] "final classification accuracy:0.983950607781112"
+#[1] "final classification accuracy:0.966904998321711"
 
 #   tictoc::tic()
 #   SolGreedy<-greedy(training)
@@ -66,9 +110,9 @@ test=AritmiaNormalized[-indices,]
 # #particion <- lapply(folds,  function(indices,dat) dat[indices,],dat=AritmiaNormalized)
 # partitionDistribution(particion$Fold1)
 # 
-Adjust3nn<-function(x,y){
+Adjust3nn<-function(x,y,z){
   set.seed(12345)
-  modelo<-train(Aritmia.class ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
+  modelo<-train(z ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
   return(modelo)
 }
 # 
@@ -163,6 +207,10 @@ modelo <- function(x) {
   return(modelo$results$Accuracy)
 }
 
+library(foreach)
+library(doParallel)
+registerDoParallel(cores=detectCores(all.tests=TRUE))
+
 #algoritmo greedy
 greedy <- function(x) { 
   dataset<-x
@@ -182,9 +230,9 @@ bestmodel<-0
     bestcandidateAccu<-0
     modelo<-0
     evalua<-0
-    for( i in 1:(ncol(dataset)-1)){
+    for(i in seq_along(1:(ncol(dataset)-1))) {
       if(selected[i]!=1){
-         modelo=Adjust3nn((caracteristicasYaSel+dataset[[i]]),dataset)
+         modelo=Adjust3nn((caracteristicasYaSel+dataset[[i]]),dataset,dataset[[ncol(dataset)]])
          evalua=modelo$results$Accuracy
         if((evalua > bestcandidateAccu)){
           bestcandidateFeature<-dataset[[i]]
@@ -194,6 +242,7 @@ bestmodel<-0
         }
       }
     }
+    
     if(bestcandidateAccu>bestAccu){
         selected[bestcandidateIndex]=1
         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
@@ -208,13 +257,13 @@ bestmodel<-0
 } 
 
 
-tictoc::tic()
- greedy(AritmiaNormalized)
-tictoc::toc()
+time1<-tictoc::tic()
+ sol1<-greedy(wdbcNormalized)
+time2<-tictoc::toc()
 
-#system.time(
-#  greedy(AritmiaNormalized)
-#)
+time<-system.time(
+ sol1<-greedy(wdbcNormalized)
+)
 
 getFeatures<-function(selected,dataset){
   featuresList<-lapply(seq_along(selected), function(i) {
