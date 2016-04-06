@@ -671,9 +671,134 @@ w<-nrow(modelosTestvsTrainARR_TS_[3,i][[1]])
 i<-c((w-1),w)
 postARRInter_TS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter_TS_[[i]],modelosTestvsTrainARR_TS_[3,i][[1]][-ind, ]$Aritmia.class)))
 
+#-----------------------------------------------------------------------------------
+#---------------------------KNN con K=3 --------------------------------------------
+#-----------------------------------------------------------------------------------
+
+#---------------para WDBC -------------------------------
+modelosTrainvstestknn <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-modelo(training[[ncol(training)]],training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainknn <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-modelo(training[[ncol(training)]],training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------------------Para movement libras----------------------------------
+modelosTrainvstestML_knn <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-modelo(training[[ncol(training)]],training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainML_knn <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-modelo(training[[ncol(training)]],training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------Para Arritmia----------------------------
+modelosTrainvstestARR_KNN_ <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-modelo(training[[ncol(training)]],training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainARR_KNN_ <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-modelo(training[[ncol(training)]],training))
+  list(Solucionmodelo,time,test)
+})
+
+#-----------------------calculamos acierto de train y test y tasa de reduccion: ----------------------------------------------
+#--------------------------------------  WDBC:  -------------
+AccuTrainWDBCG_knn_SinInter<-list(modelosTrainvstestknn[1,1][[1]]$results$Accuracy,modelosTrainvstestknn[1,2][[1]]$results$Accuracy,
+                                 modelosTrainvstestknn[1,3][[1]]$results$Accuracy,modelosTrainvstestknn[1,4][[1]]$results$Accuracy,
+                                 modelosTrainvstestknn[1,5][[1]]$results$Accuracy)
+
+AccuTrainWDBC_knn_Inter<-list(modelosTestvsTrainknn[1,1][[1]]$results$Accuracy,modelosTestvsTrainknn[1,2][[1]]$results$Accuracy,
+                             modelosTestvsTrainknn[1,3][[1]]$results$Accuracy,modelosTestvsTrainknn[1,4][[1]]$results$Accuracy,
+                             modelosTestvsTrainknn[1,5][[1]]$results$Accuracy)
+
+
+tiemposWDBC_knn_SinInter<-modelosTrainvstestknn[2,]
+tiemposWDBC_knn_Inter<-modelosTestvsTrainknn[2,]
+
+predictionsWDBCsInter_knn_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestknn[1,i][[1]],modelosTrainvstestknn[3,i][[1]])))
+postWDBCsInter_knn_<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCsInter_knn_[[i]],modelosTrainvstestknn[3,i][[1]]$wdbc.class)))
+predictionsWDBCInter_knn_<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainknn[1,i][[1]], modelosTestvsTrainknn[3,i][[1]])))
+ind<-nrow(modelosTestvsTrainknn[3,][[1]])
+postWDBCInter_knn_<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCInter_knn_[[i]],modelosTestvsTrainknn[3,i][[1]][-ind, ]$wdbc.class)))
+
+#--------------------------------------  MOVEMENT LIBRAS:  -------------
+
+AccuTrainLIBRAS_knn_SinInter<-list(modelosTrainvstestML_knn[1,1][[1]]$results$Accuracy,modelosTrainvstestML_knn[1,2][[1]]$results$Accuracy,
+                                  modelosTrainvstestML_knn[1,3][[1]]$results$Accuracy, modelosTrainvstestML_knn[1,4][[1]]$results$Accuracy,
+                                  modelosTrainvstestML_knn[1,5][[1]]$results$Accuracy)
+
+AccuTrainLIBRAS_knn_Inter<-list(modelosTestvsTrainML_knn[1,1][[1]]$results$Accuracy,modelosTestvsTrainML_knn[1,2][[1]]$results$Accuracy,
+                               modelosTestvsTrainML_knn[1,3][[1]]$results$Accuracy,modelosTestvsTrainML_knn[1,4][[1]]$results$Accuracy,
+                               modelosTestvsTrainML_knn[1,5][[1]]$results$Accuracy)
+
+tiemposLIBRAS_knn_SinInter<-modelosTrainvstestML_knn[2,]
+tiemposLIBRAS_knn_Inter<-modelosTestvsTrainML_knn[2,]
+
+
+predictionsLIBRASsInter_knn_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestML_knn[1,i][[1]],modelosTrainvstestML_knn[3,i][[1]])))
+postLIBRASsInter_knn<-lapply(seq_along(1:5),function(i) (postResample(predictionsLIBRASsInter_knn_[[i]],modelosTrainvstestML_knn[3,i][[1]]$Libras.Class)))
+predictionsLIBRASInter_knn_<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainML_knn[1,i][[1]], modelosTestvsTrainML_knn[3,i][[1]])))
+postLIBRASInter_knn_<-lapply(seq_along(1:5),function(i) (postResample(predictionsLIBRASInter_knn_[[i]],modelosTestvsTrainML_knn[3,i][[1]]$Libras.Class)))
+
+#--------------------------------------  ARRITMIA:  -------------
+AccuTrainARR_knn_SinInter<-list(modelosTrainvstestARR_KNN_[1,1][[1]]$results$Accuracy,modelosTrainvstestARR_KNN_[1,2][[1]]$results$Accuracy,
+                               modelosTrainvstestARR_KNN_[1,3][[1]]$results$Accuracy, modelosTrainvstestARR_KNN_[1,4][[1]]$results$Accuracy,
+                               modelosTrainvstestARR_KNN_[1,5][[1]]$results$Accuracy)
+
+AccuTrainARR_knn_Inter<-list(modelosTestvsTrainARR_KNN_[1,1][[1]]$results$Accuracy,modelosTestvsTrainARR_KNN_[1,2][[1]]$results$Accuracy,
+                            modelosTestvsTrainARR_KNN_[1,3][[1]]$results$Accuracy,modelosTestvsTrainARR_KNN_[1,4][[1]]$results$Accuracy,
+                            modelosTestvsTrainARR_KNN_[1,5][[1]]$results$Accuracy)
+ 
+tiemposARR_KNN_SinInter<-modelosTrainvstestARR_KNN_[2,]
+tiemposARR_KNN_Inter<-modelosTestvsTrainARR_KNN_[2,]
+
+predictionsARRsInter_KNN_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR_KNN_[1,i][[1]],modelosTrainvstestARR_KNN_[3,i][[1]])))
+postARRsInter_KNN_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRsInter_KNN_[[i]],modelosTrainvstestARR_KNN_[3,i][[1]]$Aritmia.class)))
+predictionsARRInter_KNN_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTestvsTrainARR_KNN_[1,i][[1]], modelosTestvsTrainARR_KNN_[3,i][[1]])))
+w<-nrow(modelosTestvsTrainARR_KNN_[3,1][[1]])
+ind<-c((w-1),w)
+postARRInter_KNN_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter_KNN_[[i]],modelosTestvsTrainARR_KNN_[3,i][[1]][-ind, ]$Aritmia.class)))
+
+
 
 #stopCluster(cl)
-
 
 Adjust3nn<-function(x,y,z){
   set.seed(12345)
@@ -758,13 +883,13 @@ Adjust3nn<-function(x,y,z){
 
 
 
-# #funcion aplicamodelo
-# modelo <- function(x) { 
-#   #train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
-#   set.seed(123456)
-#   modelo<-train(Aritmia.class ~x,data=AritmiaNormalized,method="knn", tuneGrid=expand.grid(.k=3))
-#   return(modelo$results$Accuracy)
-# }
+#funcion aplicamodelo
+modelo <- function(y,z) { 
+  #train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
+  set.seed(12345)
+  modelo<-train(y ~. -z[,ncol(z)],data=z,method="knn", tuneGrid=expand.grid(.k=3))
+  return(modelo)
+}
 
 # library(foreach)
 # library(doParallel)
