@@ -200,11 +200,115 @@ tiemposARRGreedyInter<-modelosTestvsTrainARR[2,]
 
 predictionsARRsInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR[1,i][[1]][[1]],modelosTrainvstestARR[3,i][[1]])))
 postARRsInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRsInter[[i]],modelosTrainvstestARR[3,i][[1]]$Aritmia.class)))
-predictionsARRInter<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainARR[1,i][[1]][[1]], modelosTestvsTrainARR[3,i][[1]])))
-postARRInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter[[i]],modelosTestvsTrainARR[3,i][[1]]$Aritmia.class)))
+predictionsARRInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTestvsTrainARR[1,i][[1]][[1]], modelosTestvsTrainARR[3,i][[1]])))
+ind<-c(1,2)
+postARRInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter[[i]],modelosTestvsTrainARR[3,i][[1]][-ind, ]$Aritmia.class)))
 
 l1TestArr<-list(postARRsInter[[1]][[1]],postARRsInter[[2]][[1]],postARRsInter[[3]][[1]],postARRsInter[[4]][[1]],postARRsInter[[5]][[1]])
 l2TestArr<-list(postARRInter[[1]][[1]],postARRInter[[2]][[1]],postARRInter[[3]][[1]],postARRInter[[4]][[1]],postARRInter[[5]][[1]])
+
+
+###############--------------BÚSQUED LOCAL-------------------------------------
+##########ALGORITMO GREEDY: #########
+#----------------------------------Para wdbc---------------------------------------
+modelosTrainvstestLS <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-LocalSearch(training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainLS <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-LocalSearch(training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------------------Para movement libras----------------------------------
+modelosTrainvstestML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------------------Para Arritmia----------------------------------------
+modelosTrainvstestARR <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainARR <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-greedy(training))
+  list(Solucionmodelo,time,test)
+})
+
+#-----------------------calculamos acierto de train y test y tasa de reduccion: ----------------------------------------------
+
+#--------------------------------------  WDBC:  -------------
+AccuTrainWDBCGreedySinInter<-list(modelosTrainvstest[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstest[1,2][[1]][[1]]$results$Accuracy,
+                                  modelosTrainvstest[1,3][[1]][[1]]$results$Accuracy, modelosTrainvstest[1,4][[1]][[1]]$results$Accuracy,
+                                  modelosTrainvstest[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainWDBCGreedyInter<-list(modelosTestvsTrain[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrain[1,2][[1]][[1]]$results$Accuracy,
+                               modelosTestvsTrain[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrain[1,4][[1]][[1]]$results$Accuracy,
+                               modelosTestvsTrain[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainWDBCGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstest[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})                  
+
+ReductionTrainWDBCGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrain[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})  
+
+tiemposWDBCGreedySinInter<-modelosTrainvstest[2,]
+tiemposWDBCGreedyInter<-modelosTestvsTrain[2,]
+
+
+#acceder al conjunto de test: modelosTrainvstest[3,i][[1]]
+
+predictionsWDBCsInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstest[1,i][[1]][[1]],modelosTrainvstest[3,i][[1]])))
+postLIBRASsInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCsInter[[i]],modelosTrainvstest[3,i][[1]]$wdbc.class)))
+predictionsWDBCInter<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrain[1,i][[1]][[1]], modelosTestvsTrain[3,i][[1]])))
+postLIBRASInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCInter[[i]],modelosTestvsTrain[3,i][[1]]$wdbc.class)))
+
+l1TestWDBC<-list(postLIBRASsInter[[1]][[1]],postLIBRASsInter[[2]][[1]],postLIBRASsInter[[3]][[1]],postLIBRASsInter[[4]][[1]],postLIBRASsInter[[5]][[1]])
+l2TestWDBC<-list(postLIBRASInter[[1]][[1]],postLIBRASInter[[2]][[1]],postLIBRASInter[[3]][[1]],postLIBRASInter[[4]][[1]],postLIBRASInter[[5]][[1]])
+
+
+
+
 
 
 
