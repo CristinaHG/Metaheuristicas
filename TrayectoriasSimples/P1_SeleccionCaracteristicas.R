@@ -358,8 +358,8 @@ ReductionTrainARRGreedyInter<-lapply(seq_along(1:5),function(i){
   100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainARR_LS_[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
 })  
 
-tiemposARRGreedySinInter<-modelosTrainvstestARR_LS_[2,]
-tiemposARRGreedyInter<-modelosTestvsTrainARR_LS_[2,]
+tiemposARR_LS_SinInter<-modelosTrainvstestARR_LS_[2,]
+tiemposARR_LS_Inter<-modelosTestvsTrainARR_LS_[2,]
 
 
 predictionsARRsInter_LS_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR_LS_[1,i][[1]][[1]],modelosTrainvstestARR_LS_[3,i][[1]])))
@@ -493,6 +493,33 @@ postLIBRASsInter_SA<-lapply(seq_along(1:5),function(i) (postResample(predictions
 predictionsLIBRASInter_SA_<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainML_SA_[1,i][[1]][[1]], modelosTestvsTrainML_SA_[3,i][[1]])))
 postLIBRASInter_SA_<-lapply(seq_along(1:5),function(i) (postResample(predictionsLIBRASInter_SA_[[i]],modelosTestvsTrainML_SA_[3,i][[1]]$Libras.Class)))
 
+#--------------------------------------  ARRITMIA:  -------------
+AccuTrainARR_SA_SinInter<-list(modelosTrainvstestARR_SA_[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstestARR_SA_[1,2][[1]][[1]]$results$Accuracy,
+                               modelosTrainvstestARR_SA_[1,3][[1]][[1]]$results$Accuracy, modelosTrainvstestARR_SA_[1,4][[1]][[1]]$results$Accuracy,
+                               modelosTrainvstestARR_SA_[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainARR_SA_Inter<-list(modelosTestvsTrainARR_SA_[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrainARR_SA_[1,2][[1]][[1]]$results$Accuracy,
+                            modelosTestvsTrainARR_SA_[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrainARR_SA_[1,4][[1]][[1]]$results$Accuracy,
+                            modelosTestvsTrainARR_SA_[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainARR_SA_SinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestARR_SA_[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})                  
+
+ReductionTrainARR_SA_Inter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainARR_SA_[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})  
+
+tiemposARR_SA_SinInter<-modelosTrainvstestARR_SA_[2,]
+tiemposARR_SA_Inter<-modelosTestvsTrainARR_SA_[2,]
+
+
+predictionsARRsInter_SA_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR_SA_[1,i][[1]][[1]],modelosTrainvstestARR_SA_[3,i][[1]])))
+postARRsInter_SA_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRsInter_SA_[[i]],modelosTrainvstestARR_SA_[3,i][[1]]$Aritmia.class)))
+predictionsARRInter_SA_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTestvsTrainARR_SA_[1,i][[1]][[1]], modelosTestvsTrainARR_SA_[3,i][[1]])))
+w<-nrow(modelosTestvsTrainARR_SA_[3,i][[1]])
+i<-c((w-1),w)
+postARRInter_SA_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter_SA_[[i]],modelosTestvsTrainARR_SA_[3,i][[1]][-ind, ]$Aritmia.class)))
 
 
 
