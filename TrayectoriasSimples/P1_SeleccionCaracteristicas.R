@@ -457,8 +457,8 @@ ReductionTrainWDBC_SA_Inter<-lapply(seq_along(1:5),function(i){
   100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainSA[1,i][[1]][[2]]))/ncol(wdbcNormalized))
 })  
 
-tiemposWDBC_LS_SinInter<-modelosTrainvstestSA[2,]
-tiemposWDBC_LS_Inter<-modelosTestvsTrainSA[2,]
+tiemposWDBC_SA_SinInter<-modelosTrainvstestSA[2,]
+tiemposWDBC_SA_Inter<-modelosTestvsTrainSA[2,]
 
 predictionsWDBCsInter_SA_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestSA[1,i][[1]][[1]],modelosTrainvstestSA[3,i][[1]])))
 postWDBCsInter_SA_<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCsInter_SA_[[i]],modelosTrainvstestSA[3,i][[1]]$wdbc.class)))
@@ -522,7 +522,71 @@ i<-c((w-1),w)
 postARRInter_SA_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter_SA_[[i]],modelosTestvsTrainARR_SA_[3,i][[1]][-ind, ]$Aritmia.class)))
 
 
+#-----------------------------------------------------------------------------------------------------------
+#-------------------            TABU SEARCH           --------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+#----------------------------------Para wdbc---------------------------------------
+modelosTrainvstestTS <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  list(Solucionmodelo,time,test)
+})
 
+modelosTestvsTrainSA <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------------------Para movement libras----------------------------------
+modelosTrainvstestML_SA_ <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainML_SA_ <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  list(Solucionmodelo,time,test)
+})
+
+#---------------------------Para Arritmia----------------------------------------
+modelosTrainvstestARR_SA_ <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  list(Solucionmodelo,time,test)
+})
+
+modelosTestvsTrainARR_SA_ <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  
+  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  list(Solucionmodelo,time,test)
+})
 
 
 
@@ -865,8 +929,14 @@ SimulateAnnealing<-function(x){
     bestGlobal<-SolInitial
     BestAccuracyGlobal<-0
     nEval<-0
-    
-    AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
+    bestmodel<-0
+    Actualmodel<-0
+    Initialmodel<-0
+    Vecinamodel<-0
+    Initialmodel<-Adjust3nn(getFeatures(SolInitial,dataset),dataset,dataset[[ncol(dataset)]])
+    AccuracyInitial<-Initialmodel$reslts$Accuracy
+    Actualmodel<-Initialmodel
+    #AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
     AccuracyActual<-AccuracyInitial
     BestAccuracyGlobal<-AccuracyInitial
     selected<-0
@@ -889,13 +959,18 @@ SimulateAnnealing<-function(x){
       #sort(resultados,decreasing = TRUE)
     #}
 
-    AccuModelos <- sapply(seq_along(selected),  function(i){
+    Modelos <- sapply(seq_along(selected),  function(i){
       vecina<-flip(SolActual,selected[[i]])
       featuresVecina<-getFeatures(vecina,dataset)
-      VecinaAccu<-modelo(featuresVecina)
+      Vecinamodel<-Adjust3nn(featuresVecina,dataset,dataset[[ncol(dataset)]])
+      #VecinaAccu<-modelo(featuresVecina)
+      #VecinaAccu<-Vecinamodel$results$Accuracy
       #list(c(vecina),c(VecinaAccu))
-      c(VecinaAccu)
+      c(Vecinamodel)
       }) 
+    AccuModelos<-sapply(seq_along(Modelos),  function(i)
+      (Modelos[[i]]$results$Accuracy))
+    
     nEval<-(nEval+30)
     bestIndex<-which.max(AccuModelos)
     AccuModelosSorted<-sort(AccuModelos,decreasing = TRUE)
@@ -911,6 +986,7 @@ SimulateAnnealing<-function(x){
       #SolActual
       if(AccuModelosSorted[[1]]>AccuracyActual){ #criterio aspiración
       AccuracyActual<-AccuModelosSorted[[1]]
+      Actualmodel<-Modelos[[bestIndex]]
       TabuListMovements<-c(TabuListMovements,bestIndex)
       }
     }else{
