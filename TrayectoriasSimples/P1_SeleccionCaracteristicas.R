@@ -141,7 +141,8 @@ tiemposWDBCGreedyInter<-modelosTestvsTrain[2,]
 predictionsWDBCsInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstest[1,i][[1]][[1]],modelosTrainvstest[3,i][[1]])))
 postWDBCsInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCsInter[[i]],modelosTrainvstest[3,i][[1]]$wdbc.class)))
 predictionsWDBCInter<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrain[1,i][[1]][[1]], modelosTestvsTrain[3,i][[1]])))
-postWDBCInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCInter[[i]],modelosTestvsTrain[3,i][[1]]$wdbc.class)))
+ind<-nrow(modelosTestvsTrain[3,][[1]])
+postWDBCInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCInter[[i]],modelosTestvsTrain[3,i][[1]][-ind,]$wdbc.class)))
 
 l1TestWDBC<-list(postWDBCsInter[[1]][[1]],postWDBCsInter[[2]][[1]],postWDBCsInter[[3]][[1]],postWDBCsInter[[4]][[1]],postWDBCsInter[[5]][[1]])
 l2TestWDBC<-list(postWDBCInter[[1]][[1]],postWDBCInter[[2]][[1]],postWDBCInter[[3]][[1]],postWDBCInter[[4]][[1]],postWDBCInter[[5]][[1]])
@@ -201,7 +202,8 @@ tiemposARRGreedyInter<-modelosTestvsTrainARR[2,]
 predictionsARRsInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR[1,i][[1]][[1]],modelosTrainvstestARR[3,i][[1]])))
 postARRsInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRsInter[[i]],modelosTrainvstestARR[3,i][[1]]$Aritmia.class)))
 predictionsARRInter<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTestvsTrainARR[1,i][[1]][[1]], modelosTestvsTrainARR[3,i][[1]])))
-ind<-c(1,2)
+w<-nrow(modelosTestvsTrainARR_LS_[3,][[1]])
+ind<-c((w-1),w)
 postARRInter<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter[[i]],modelosTestvsTrainARR[3,i][[1]][-ind, ]$Aritmia.class)))
 
 l1TestArr<-list(postARRsInter[[1]][[1]],postARRsInter[[2]][[1]],postARRsInter[[3]][[1]],postARRsInter[[4]][[1]],postARRsInter[[5]][[1]])
@@ -350,11 +352,11 @@ AccuTrainARR_LS_Inter<-list(modelosTestvsTrainARR_LS_[1,1][[1]][[1]]$results$Acc
                               modelosTestvsTrainARR_LS_[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrainARR_LS_[1,4][[1]][[1]]$results$Accuracy,
                               modelosTestvsTrainARR_LS_[1,5][[1]][[1]]$results$Accuracy)
 
-ReductionTrainARRGreedySinInter<-lapply(seq_along(1:5),function(i){
+ReductionTrainARR_LS_SinInter<-lapply(seq_along(1:5),function(i){
   100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestARR_LS_[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
 })                  
 
-ReductionTrainARRGreedyInter<-lapply(seq_along(1:5),function(i){
+ReductionTrainARR_LS_Inter<-lapply(seq_along(1:5),function(i){
   100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainARR_LS_[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
 })  
 
@@ -365,8 +367,8 @@ tiemposARR_LS_Inter<-modelosTestvsTrainARR_LS_[2,]
 predictionsARRsInter_LS_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR_LS_[1,i][[1]][[1]],modelosTrainvstestARR_LS_[3,i][[1]])))
 postARRsInter_LS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRsInter_LS_[[i]],modelosTrainvstestARR_LS_[3,i][[1]]$Aritmia.class)))
 predictionsARRInter_LS_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTestvsTrainARR_LS_[1,i][[1]][[1]], modelosTestvsTrainARR_LS_[3,i][[1]])))
-w<-nrow(modelosTestvsTrainARR_LS_[3,i][[1]])
-i<-c((w-1),w)
+w<-nrow(modelosTestvsTrainARR_LS_[3,][[1]])
+ind<-c((w-1),w)
 postARRInter_LS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter_LS_[[i]],modelosTestvsTrainARR_LS_[3,i][[1]][-ind, ]$Aritmia.class)))
 
 # l1TestArr<-list(postARRsInter[[1]][[1]],postARRsInter[[2]][[1]],postARRsInter[[3]][[1]],postARRsInter[[4]][[1]],postARRsInter[[5]][[1]])
@@ -532,62 +534,142 @@ modelosTrainvstestTS <- sapply(seq_along(1:5),  function(i){
   training=wdbcNormalized[indices,]
   test=wdbcNormalized[-indices,]
   
-  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  time<-system.time(Solucionmodelo<-TabuSearch(training))
   list(Solucionmodelo,time,test)
 })
 
-modelosTestvsTrainSA <- sapply(seq_along(1:5),  function(i){
+modelosTestvsTrainTS <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
   test=wdbcNormalized[indices,]
   training=wdbcNormalized[-indices,]
   
-  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  time<-system.time(Solucionmodelo<-TabuSearch(training))
   list(Solucionmodelo,time,test)
 })
 
 #---------------------------Para movement libras----------------------------------
-modelosTrainvstestML_SA_ <- sapply(seq_along(1:5),  function(i){
+modelosTrainvstestML_TS_ <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
   training=LibrasNormalized[indices,]
   test=LibrasNormalized[-indices,]
   
-  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  time<-system.time(Solucionmodelo<-TabuSearch(training))
   list(Solucionmodelo,time,test)
 })
 
-modelosTestvsTrainML_SA_ <- sapply(seq_along(1:5),  function(i){
+modelosTestvsTrainML_TS_ <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
   test=LibrasNormalized[indices,]
   training=LibrasNormalized[-indices,]
   
-  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  time<-system.time(Solucionmodelo<-TabuSearch(training))
   list(Solucionmodelo,time,test)
 })
 
 #---------------------------Para Arritmia----------------------------------------
-modelosTrainvstestARR_SA_ <- sapply(seq_along(1:5),  function(i){
+modelosTrainvstestARR_TS_ <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
   training=AritmiaNormalized[indices,]
   test=AritmiaNormalized[-indices,]
   
-  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  time<-system.time(Solucionmodelo<-TabuSearch(training))
   list(Solucionmodelo,time,test)
 })
 
-modelosTestvsTrainARR_SA_ <- sapply(seq_along(1:5),  function(i){
+modelosTestvsTrainARR_TS_ <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
   test=AritmiaNormalized[indices,]
   training=AritmiaNormalized[-indices,]
   
-  time<-system.time(Solucionmodelo<-SimulateAnnealing(training))
+  time<-system.time(Solucionmodelo<-TabuSearch(training))
   list(Solucionmodelo,time,test)
 })
 
+#-----------------------calculamos acierto de train y test y tasa de reduccion: ----------------------------------------------
+#--------------------------------------  WDBC:  -------------
+AccuTrainWDBCG_TS_SinInter<-list(modelosTrainvstestTS[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstestTS[1,2][[1]][[1]]$results$Accuracy,
+                                 modelosTrainvstestTS[1,3][[1]][[1]]$results$Accuracy,modelosTrainvstestTS[1,4][[1]][[1]]$results$Accuracy,
+                                 modelosTrainvstestTS[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainWDBC_TS_Inter<-list(modelosTestvsTrainTS[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrainTS[1,2][[1]][[1]]$results$Accuracy,
+                             modelosTestvsTrainTS[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrainTS[1,4][[1]][[1]]$results$Accuracy,
+                             modelosTestvsTrainTS[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainWDBC_TS_SinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstestTS[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})                  
+
+ReductionTrainWDBC_TS_Inter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainTS[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})  
+
+tiemposWDBC_TS_SinInter<-modelosTrainvstestTS[2,]
+tiemposWDBC_TS_Inter<-modelosTestvsTrainTS[2,]
+
+predictionsWDBCsInter_TS_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestTS[1,i][[1]][[1]],modelosTrainvstestTS[3,i][[1]])))
+postWDBCsInter_TS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCsInter_TS_[[i]],modelosTrainvstestTS[3,i][[1]]$wdbc.class)))
+predictionsWDBCInter_TS_<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainTS[1,i][[1]][[1]], modelosTestvsTrainTS[3,i][[1]])))
+ind<-nrow(modelosTestvsTrainTS[3,][[1]])
+postWDBCInter_TS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsWDBCInter_TS_[[i]],modelosTestvsTrainTS[3,i][[1]][-ind, ]$wdbc.class)))
+
+#--------------------------------------  MOVEMENT LIBRAS:  -------------
+
+AccuTrainLIBRAS_TS_SinInter<-list(modelosTrainvstestML_TS_[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstestML_TS_[1,2][[1]][[1]]$results$Accuracy,
+                                  modelosTrainvstestML_TS_[1,3][[1]][[1]]$results$Accuracy, modelosTrainvstestML_TS_[1,4][[1]][[1]]$results$Accuracy,
+                                  modelosTrainvstestML_TS_[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainLIBRAS_TS_Inter<-list(modelosTestvsTrainML_TS_[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrainML_TS_[1,2][[1]][[1]]$results$Accuracy,
+                               modelosTestvsTrainML_TS_[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrainML_TS_[1,4][[1]][[1]]$results$Accuracy,
+                               modelosTestvsTrainML_TS_[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainLIBRAS_TS_SinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTrainvstestML_TS_[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+})                  
+
+ReductionTrainLIBRAS_TS_Inter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTestvsTrainML_TS_[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+})  
+
+tiemposLIBRAS_TS_SinInter<-modelosTrainvstestML_TS_[2,]
+tiemposLIBRAS_TS_Inter<-modelosTestvsTrainML_TS_[2,]
+
+
+predictionsLIBRASsInter_TS_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestML_TS_[1,i][[1]][[1]],modelosTrainvstestML_TS_[3,i][[1]])))
+postLIBRASsInter_TS<-lapply(seq_along(1:5),function(i) (postResample(predictionsLIBRASsInter_TS_[[i]],modelosTrainvstestML_TS_[3,i][[1]]$Libras.Class)))
+predictionsLIBRASInter_TS_<-lapply(seq_along(1:5),function(i)  (pred<-predict(modelosTestvsTrainML_TS_[1,i][[1]][[1]], modelosTestvsTrainML_TS_[3,i][[1]])))
+postLIBRASInter_TS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsLIBRASInter_TS_[[i]],modelosTestvsTrainML_TS_[3,i][[1]]$Libras.Class)))
+
+#--------------------------------------  ARRITMIA:  -------------
+AccuTrainARR_TS_SinInter<-list(modelosTrainvstestARR_TS_[1,1][[1]][[1]]$results$Accuracy,modelosTrainvstestARR_TS_[1,2][[1]][[1]]$results$Accuracy,
+                               modelosTrainvstestARR_TS_[1,3][[1]][[1]]$results$Accuracy, modelosTrainvstestARR_TS_[1,4][[1]][[1]]$results$Accuracy,
+                               modelosTrainvstestARR_TS_[1,5][[1]][[1]]$results$Accuracy)
+
+AccuTrainARR_TS_Inter<-list(modelosTestvsTrainARR_TS_[1,1][[1]][[1]]$results$Accuracy,modelosTestvsTrainARR_TS_[1,2][[1]][[1]]$results$Accuracy,
+                            modelosTestvsTrainARR_TS_[1,3][[1]][[1]]$results$Accuracy,modelosTestvsTrainARR_TS_[1,4][[1]][[1]]$results$Accuracy,
+                            modelosTestvsTrainARR_TS_[1,5][[1]][[1]]$results$Accuracy)
+
+ReductionTrainARR_TS_SinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestARR_TS_[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})                  
+
+ReductionTrainARR_TS_Inter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainARR_TS_[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})  
+
+tiemposARR_TS_SinInter<-modelosTrainvstestARR_TS_[2,]
+tiemposARR_TS_Inter<-modelosTestvsTrainARR_TS_[2,]
+
+predictionsARRsInter_TS_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTrainvstestARR_TS_[1,i][[1]][[1]],modelosTrainvstestARR_TS_[3,i][[1]])))
+postARRsInter_TS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRsInter_TS_[[i]],modelosTrainvstestARR_TS_[3,i][[1]]$Aritmia.class)))
+predictionsARRInter_TS_<-lapply(seq_along(1:5),function(i) (pred<-predict(modelosTestvsTrainARR_TS_[1,i][[1]][[1]], modelosTestvsTrainARR_TS_[3,i][[1]])))
+w<-nrow(modelosTestvsTrainARR_TS_[3,i][[1]])
+i<-c((w-1),w)
+postARRInter_TS_<-lapply(seq_along(1:5),function(i) (postResample(predictionsARRInter_TS_[[i]],modelosTestvsTrainARR_TS_[3,i][[1]][-ind, ]$Aritmia.class)))
 
 
 #stopCluster(cl)
@@ -934,7 +1016,7 @@ SimulateAnnealing<-function(x){
     Initialmodel<-0
     Vecinamodel<-0
     Initialmodel<-Adjust3nn(getFeatures(SolInitial,dataset),dataset,dataset[[ncol(dataset)]])
-    AccuracyInitial<-Initialmodel$reslts$Accuracy
+    AccuracyInitial<-Initialmodel$results$Accuracy
     Actualmodel<-Initialmodel
     #AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
     AccuracyActual<-AccuracyInitial
@@ -966,10 +1048,10 @@ SimulateAnnealing<-function(x){
       #VecinaAccu<-modelo(featuresVecina)
       #VecinaAccu<-Vecinamodel$results$Accuracy
       #list(c(vecina),c(VecinaAccu))
-      c(Vecinamodel)
+      list(Vecinamodel,vecina)
       }) 
-    AccuModelos<-sapply(seq_along(Modelos),  function(i)
-      (Modelos[[i]]$results$Accuracy))
+    AccuModelos<-sapply(seq_along(selected),  function(i)
+      (Modelos[1,i][[1]]$results$Accuracy))
     
     nEval<-(nEval+30)
     bestIndex<-which.max(AccuModelos)
@@ -985,8 +1067,9 @@ SimulateAnnealing<-function(x){
     if(!isTabu){
       #SolActual
       if(AccuModelosSorted[[1]]>AccuracyActual){ #criterio aspiración
+      SolActual<-Modelos[2,bestIndex][[1]]
       AccuracyActual<-AccuModelosSorted[[1]]
-      Actualmodel<-Modelos[[bestIndex]]
+      Actualmodel<-Modelos[1,bestIndex][[1]]
       TabuListMovements<-c(TabuListMovements,bestIndex)
       }
     }else{
@@ -999,24 +1082,28 @@ SimulateAnnealing<-function(x){
         if(noTareTabu[[i]]){
           if(AccuModelos[[i]]>AccuracyActual){
             AccuracyActual<-AccuModelos[[i]]
+            Actualmodel<-Modelos[1,i][[1]]
+            SolActual<-Modelos[2,i][[1]]
             TabuListMovements<-c(TabuListMovements,selected[[i]])
+          }
           }else{ #aunque sea tabú me la puedo quedar si mejora la global
             if(AccuModelos[[i]]>BestAccuracyGlobal){
               AccuracyActual<-AccuModelos[[i]]
+              Actualmodel<-Modelos[1,i][[1]]
+              SolActual<-Modelos[2,i][[1]]
             }
           }
-        }
-      })
-  
+        })
     }
     if(AccuracyActual> BestAccuracyGlobal){
       BestAccuracyGlobal<-AccuracyActual
-      
+      bestmodel<-Actualmodel
+      bestGlobal<-SolActual
     }
     }
-    return (BestAccuracyGlobal)
+    return (list(bestmodel,bestGlobal))
   }
 
 #      tictoc::tic()
-#    SolTabu<-TabuSearch(AritmiaNormalized)
+#    SolTabu<-TabuSearch(wdbcNormalized)
 #      tictoc::toc()
