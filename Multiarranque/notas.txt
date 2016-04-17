@@ -1,0 +1,2 @@
+no lanzar aleatorios en cada iter,emparejar previamente parejas de cruce.
+Hacer torneo binario
