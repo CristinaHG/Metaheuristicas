@@ -1325,13 +1325,33 @@ BMB<-function(training,test){
   return(ModelosBL[[i]])
 }
 
-i<-1
-set.seed(i*9876543)
-indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
-training=wdbcNormalized[indices,]
-test=wdbcNormalized[-indices,]
+##########BÚSQUEDA MULTIARRANQUE BÁSICA: #########
+#----------------------------------Para wdbc---------------------------------------
 
-multiarranque<-BMB(training,test)
-#      tictoc::tic()
-#    SolTabu<-TabuSearch(wdbcNormalized)
-#      tictoc::toc()
+library(parallel)
+no_cores <- detectCores() - 1
+cl <- makeCluster(no_cores,type="FORK")
+
+modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+  list(SolucionmodeloBMB,time)
+})
+stopCluster(cl)
+
+no_cores <- detectCores() - 1
+cl <- makeCluster(no_cores,type="FORK")
+modelosTestvsTrainBMB <- parSapply(cl,seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+  list(SolucionmodeloBMB,time)
+})
+stopCluster(cl)
