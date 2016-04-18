@@ -1256,7 +1256,7 @@ LocalSearchModified<-function(training,test,sIni){
   
   #  while((!fin) && (nEval<15000)){
   while(!fin){
-    if(nEval==700){
+    if(nEval==10000){
       break
     }
     bestSolFound=FALSE
@@ -1328,9 +1328,9 @@ BMB<-function(training,test){
 ##########BÚSQUEDA MULTIARRANQUE BÁSICA: #########
 #----------------------------------Para wdbc---------------------------------------
 
-library(parallel)
-no_cores <- detectCores() - 1
-cl <- makeCluster(no_cores,type="FORK")
+# library(parallel)
+# no_cores <- detectCores() - 1
+# cl <- makeCluster(no_cores,type="FORK")
 
 modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
@@ -1341,11 +1341,11 @@ modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
   list(SolucionmodeloBMB,time)
 })
-stopCluster(cl)
+#stopCluster(cl)
 
-no_cores <- detectCores() - 1
-cl <- makeCluster(no_cores,type="FORK")
-modelosTestvsTrainBMB <- parSapply(cl,seq_along(1:5),  function(i){
+#no_cores <- detectCores() - 1
+#cl <- makeCluster(no_cores,type="FORK")
+modelosTestvsTrainBMB <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
   test=wdbcNormalized[indices,]
@@ -1354,4 +1354,4 @@ modelosTestvsTrainBMB <- parSapply(cl,seq_along(1:5),  function(i){
   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
   list(SolucionmodeloBMB,time)
 })
-stopCluster(cl)
+#stopCluster(cl)
