@@ -32,11 +32,11 @@ AritmiaNormalized=AritmiaNormalized[sapply(AritmiaNormalized, function(x) length
 wdbcNormalized=wdbcNormalized[sapply(wdbcNormalized, function(x) length(unique(x))>1)]
 LibrasNormalized=LibrasNormalized[sapply(LibrasNormalized, function(x) length(unique(x))>1)]
 
-partitionDistribution <- function(partition) {
-  print(paste('Training: ', nrow(partition$training), 'instances'))
-  print(summary(partition$training$Aritmia.class) / nrow(partition$training) * 100) # Porcentaje de muestras por clase
-  print(paste('Test: ', nrow(partition$test), 'instances'))
-  print(summary(partition$test$Aritmia.class)  / nrow(partition$test) * 100)
+partitionDistribution <- function(training,test) {
+  print(paste('Training: ', nrow(training), 'instances'))
+  print(summary(training$Aritmia.class) / nrow(training) * 100) # Porcentaje de muestras por clase
+  print(paste('Test: ', nrow(test), 'instances'))
+  print(summary(test$Aritmia.class)  / nrow(test) * 100)
 }
 
 # usamos particionamiento estratificado usando el paquete caret
@@ -1404,7 +1404,8 @@ modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
   test=AritmiaNormalized[indices,]
   training=AritmiaNormalized[-indices,]
-  
+  a<-partitionDistribution(training,test)
+  test<-test[-(nrow(test)-1),]
   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
   list(SolucionmodeloBMB,time)
 })
