@@ -1432,6 +1432,23 @@ greedyRndm <- function(training,test) {
   bestCandidatemodel<-0
   bestmodel<-0
   final<-FALSE
+  LRC<-0
+  ganancias<-0
+  ganancias<-sapply(seq_along(1:(ncol(dataset)-1)),function(i){
+    modelo=Adjust3nn(dataset[[i]],dataset,dataset[[ncol(dataset)]])
+    if(nrow(training)<nrow(test)){
+      pred<-predict(modelo,test[-nrow(test),])
+      post<-postResample(pred,test[-nrow(test),ncol(dataset)])
+      evalua<-post
+    }else{
+      pred<-predict(modelo,test)
+      post<-postResample(pred,test[[ncol(dataset)]])
+      evalua<-post
+    }
+    evalua[[1]]
+  })
+  
+  
   
   while( !final) {
     
@@ -1474,7 +1491,7 @@ greedyRndm <- function(training,test) {
     }
   return (list(bestmodel,selected,bestAccu))
 } 
-set.seed(1)
+set.seed(123456)
 indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
    training=wdbcNormalized[indices,]
    test=wdbcNormalized[-indices,]
