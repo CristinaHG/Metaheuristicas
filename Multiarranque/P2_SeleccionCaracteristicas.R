@@ -1328,95 +1328,95 @@ BMB<-function(training,test){
 
 ##########BÚSQUEDA MULTIARRANQUE BÁSICA: #########
 #----------------------------------Para wdbc---------------------------------------
-
-modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
-  set.seed(i*9876543)
-  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
-  training=wdbcNormalized[indices,]
-  test=wdbcNormalized[-indices,]
-  
-  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  list(SolucionmodeloBMB,time)
-})
-
-modelosTestvsTrainBMB <- sapply(seq_along(1:5),  function(i){
-  set.seed(i*9876543)
-  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
-  test=wdbcNormalized[indices,]
-  training=wdbcNormalized[-indices,]
-  
-  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  list(SolucionmodeloBMB,time)
-})
-
-ReductionWDBC_BMB_SinInter<-lapply(seq_along(1:5),function(i){
-  100*((ncol(wdbcNormalized)-sum(modelosTrainvstestBMB[1,i][[1]][[2]]))/ncol(wdbcNormalized))
-})                  
-
-ReductionWDBC_BMB_Inter<-lapply(seq_along(1:5),function(i){
-  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainBMB[1,i][[1]][[2]]))/ncol(wdbcNormalized))
-})  
-
-#----------------------------------Para Movement Libras---------------------------------------
-
-modelosTrainvstestBMB_Libras <- sapply(seq_along(1:5),  function(i){
-  set.seed(i*9876543)
-  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
-  training=LibrasNormalized[indices,]
-  test=LibrasNormalized[-indices,]
-  
-  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  list(SolucionmodeloBMB,time)
-})
-
-modelosTestvsTrainBMB_Libras <- sapply(seq_along(1:5),  function(i){
-  set.seed(i*9876543)
-  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
-  test=LibrasNormalized[indices,]
-  training=LibrasNormalized[-indices,]
-  
-  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  list(SolucionmodeloBMB,time)
-})
-
-ReductionWDBC_BMB_SinInter_Libras<-lapply(seq_along(1:5),function(i){
-  100*((ncol(LibrasNormalized)-sum(modelosTrainvstestBMB_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
-})                  
-
-ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
-  100*((ncol(LibrasNormalized)-sum(modelosTestvsTrainBMB_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
-})  
-
-#----------------------------------Para Arritmia--------------------------------------
-
-modelosTrainvstestBMB_Arr <- sapply(seq_along(1:5),  function(i){
-  set.seed(i*9876543)
-  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
-  training=AritmiaNormalized[indices,]
-  test=AritmiaNormalized[-indices,]
-  
-  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  list(SolucionmodeloBMB,time)
-})
-
-modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
-  set.seed(i*9876543)
-  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
-  test=AritmiaNormalized[indices,]
-  training=AritmiaNormalized[-indices,]
-  #a<-partitionDistribution(training,test)
-  test<-test[-(nrow(test)-1),]
-  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  l<-list(SolucionmodeloBMB,time)
-})
-
-ReductionWDBC_BMB_SinInter_Arr<-lapply(seq_along(1:5),function(i){
-  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestBMB_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
-})                  
-
-ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
-  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainBMB_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
-})  
+# 
+# modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
+#   set.seed(i*9876543)
+#   indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+#   training=wdbcNormalized[indices,]
+#   test=wdbcNormalized[-indices,]
+#   
+#   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+#   list(SolucionmodeloBMB,time)
+# })
+# 
+# modelosTestvsTrainBMB <- sapply(seq_along(1:5),  function(i){
+#   set.seed(i*9876543)
+#   indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+#   test=wdbcNormalized[indices,]
+#   training=wdbcNormalized[-indices,]
+#   
+#   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+#   list(SolucionmodeloBMB,time)
+# })
+# 
+# ReductionWDBC_BMB_SinInter<-lapply(seq_along(1:5),function(i){
+#   100*((ncol(wdbcNormalized)-sum(modelosTrainvstestBMB[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+# })                  
+# 
+# ReductionWDBC_BMB_Inter<-lapply(seq_along(1:5),function(i){
+#   100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainBMB[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+# })  
+# 
+# #----------------------------------Para Movement Libras---------------------------------------
+# 
+# modelosTrainvstestBMB_Libras <- sapply(seq_along(1:5),  function(i){
+#   set.seed(i*9876543)
+#   indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+#   training=LibrasNormalized[indices,]
+#   test=LibrasNormalized[-indices,]
+#   
+#   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+#   list(SolucionmodeloBMB,time)
+# })
+# 
+# modelosTestvsTrainBMB_Libras <- sapply(seq_along(1:5),  function(i){
+#   set.seed(i*9876543)
+#   indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+#   test=LibrasNormalized[indices,]
+#   training=LibrasNormalized[-indices,]
+#   
+#   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+#   list(SolucionmodeloBMB,time)
+# })
+# 
+# ReductionWDBC_BMB_SinInter_Libras<-lapply(seq_along(1:5),function(i){
+#   100*((ncol(LibrasNormalized)-sum(modelosTrainvstestBMB_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+# })                  
+# 
+# ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
+#   100*((ncol(LibrasNormalized)-sum(modelosTestvsTrainBMB_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+# })  
+# 
+# #----------------------------------Para Arritmia--------------------------------------
+# 
+# modelosTrainvstestBMB_Arr <- sapply(seq_along(1:5),  function(i){
+#   set.seed(i*9876543)
+#   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+#   training=AritmiaNormalized[indices,]
+#   test=AritmiaNormalized[-indices,]
+#   
+#   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+#   list(SolucionmodeloBMB,time)
+# })
+# 
+# modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
+#   set.seed(i*9876543)
+#   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+#   test=AritmiaNormalized[indices,]
+#   training=AritmiaNormalized[-indices,]
+#   #a<-partitionDistribution(training,test)
+#   test<-test[-(nrow(test)-1),]
+#   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+#   l<-list(SolucionmodeloBMB,time)
+# })
+# 
+# ReductionWDBC_BMB_SinInter_Arr<-lapply(seq_along(1:5),function(i){
+#   100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestBMB_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+# })                  
+# 
+# ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
+#   100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainBMB_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+# })  
 
 #-------------------------GRASP-----------------------------
 
@@ -1472,11 +1472,13 @@ greedyRndm <- function(training,test) {
         final=TRUE
       }
     }
-  return (list(bestmodel,selected,AccuracyActual))
+  return (list(bestmodel,selected,bestAccu))
 } 
-
-
-
+set.seed(1)
+indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+   training=wdbcNormalized[indices,]
+   test=wdbcNormalized[-indices,]
+greedyPrueba<-greedyRndm(training,test)
 
 
 
