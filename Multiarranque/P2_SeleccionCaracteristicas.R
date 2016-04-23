@@ -1470,7 +1470,7 @@ greedyRndm <- function(training,test) {
         final=TRUE
       }
     }
-  return (list(bestmodel,selected))
+  return (list(bestmodel,selected,AccuracyActual))
 } 
 
 
