@@ -1440,31 +1440,41 @@ greedyRndm <- function(training,test) {
   ganancias<-0
   featuresList<-as.vector(seq_along(1:ncol(dataset)-1))
   
-  library(parallel)
-  no_cores <- detectCores() - 1
-  cl <- makeCluster(no_cores,type="FORK")
-  ganancias<-parSapply(cl,seq_along(1:(ncol(dataset)-1)),function(i){
-    modelo=Adjust3nn(dataset[[i]],dataset,dataset[[ncol(dataset)]])
-    if(nrow(training)<nrow(test)){
-      pred<-predict(modelo,test[-nrow(test),])
-      post<-postResample(pred,test[-nrow(test),ncol(dataset)])
-      evalua<-post
-    }else{
-      pred<-predict(modelo,test)
-      post<-postResample(pred,test[[ncol(dataset)]])
-      evalua<-post
+  
+  while(length(featuresList)!=0) {
+    
+    if (final==TRUE){
+      break
     }
-    evalua[[1]]
-  })
-  stopCluster(cl)
-  
-  cmejor<-max(ganancias)
-  cpeor<-min(ganancias)
-  umbral<-cmejor-alpha*(cmejor-cpeor)
- # cmejor<-which.max(ganancias)
-  
-  
-  while( !final) {
+      library(parallel)
+      no_cores <- detectCores() - 1
+      cl <- makeCluster(no_cores,type="FORK")
+      ganancias<-parSapply(cl,seq_along(1:(ncol(dataset)-1)),function(i){
+      modelo=Adjust3nn(dataset[[i]],dataset,dataset[[ncol(dataset)]])
+      if(nrow(training)<nrow(test)){
+        pred<-predict(modelo,test[-nrow(test),])
+        post<-postResample(pred,test[-nrow(test),ncol(dataset)])
+        evalua<-post
+      }else{
+        pred<-predict(modelo,test)
+        post<-postResample(pred,test[[ncol(dataset)]])
+        evalua<-post
+      }
+      evalua[[1]]
+    })
+    stopCluster(cl)
+    
+    cmejor<-max(ganancias)
+    cpeor<-min(ganancias)
+    umbral<-cmejor-alpha*(cmejor-cpeor)
+    # cmejor<-which.max(ganancias)
+    
+    
+    
+    
+    
+    
+    
     
     bestcandidateAccu<-0
     modelo<-0
