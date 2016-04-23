@@ -1469,8 +1469,7 @@ greedyRndm <- function(training,test) {
     umbral<-cmejor-alpha*(cmejor-cpeor)
     # cmejor<-which.max(ganancias)
     
-    
-    
+    LRC<-which(ganancias >= umbral)# reduce list of candidates
     
     
     
