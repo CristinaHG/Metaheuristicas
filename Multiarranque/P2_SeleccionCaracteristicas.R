@@ -1433,6 +1433,10 @@ greedyRndm <- function(training,test) {
   bestmodel<-0
   final<-FALSE
   LRC<-0
+  cmejor<-0
+  cpeor<-0
+  umbral<-0
+  alpha<-0.3
   ganancias<-0
   ganancias<-sapply(seq_along(1:(ncol(dataset)-1)),function(i){
     modelo=Adjust3nn(dataset[[i]],dataset,dataset[[ncol(dataset)]])
@@ -1447,7 +1451,10 @@ greedyRndm <- function(training,test) {
     }
     evalua[[1]]
   })
-  
+  cmejor<-max(ganancias)
+  cpeor<-min(ganancias)
+  umbral<-cmejor-alpha(cmejor-cpeor)
+ # cmejor<-which.max(ganancias)
   
   
   while( !final) {
