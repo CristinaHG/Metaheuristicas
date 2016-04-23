@@ -1455,7 +1455,7 @@ greedyRndm <- function(training,test) {
          
         if((evalua[[1]] > bestcandidateAccu)){
           bestcandidateFeature<-dataset[[i]]
-          bestcandidateAccu<-evalua
+          bestcandidateAccu<-evalua[[1]]
           bestcandidateIndex<-i
           bestCandidatemodel<-modelo
         }
