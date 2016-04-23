@@ -1439,8 +1439,8 @@ greedyRndm <- function(training,test) {
     modelo<-0
     evalua<-0
     
-   # for(i in seq_along(1:(ncol(dataset)-1))) {
-    sapply(seq_along(1:(ncol(dataset)-1)),  function(i){
+    for(i in seq_along(1:(ncol(dataset)-1))) {
+   # sapply(seq_along(1:(ncol(dataset)-1)),  function(i){
       if(selected[i]!=1){
          modelo=Adjust3nn((caracteristicasYaSel+dataset[[i]]),dataset,dataset[[ncol(dataset)]])
          if(nrow(training)<nrow(test)){
@@ -1453,14 +1453,14 @@ greedyRndm <- function(training,test) {
            evalua<-post
          }
          
-        if((evalua > bestcandidateAccu)){
+        if((evalua[[1]] > bestcandidateAccu)){
           bestcandidateFeature<-dataset[[i]]
           bestcandidateAccu<-evalua
           bestcandidateIndex<-i
           bestCandidatemodel<-modelo
         }
       }
-    })
+    }
     
     if(bestcandidateAccu>bestAccu){
         selected[bestcandidateIndex]=1
