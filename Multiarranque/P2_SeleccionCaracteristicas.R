@@ -1494,11 +1494,9 @@ greedyRndm <- function(training,test) {
          }
          
     if(evalua[[1]]>bestAccu){
-      bestcandidateFeature<-dataset[[randomFeature]]
-        selected[bestcandidateIndex]=1
-        bestcandidateIndex<-randomFeature
+        selected[randomFeature]=1
         featuresList[randomFeature]<-0
-        caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
+        caracteristicasYaSel<-caracteristicasYaSel+dataset[[randomFeature]]
         bestAccu<-evalua[[1]]
         bestmodel<-modelo
     }else{
