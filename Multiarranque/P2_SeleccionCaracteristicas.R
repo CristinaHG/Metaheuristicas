@@ -1404,10 +1404,10 @@ modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
   indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
   test=AritmiaNormalized[indices,]
   training=AritmiaNormalized[-indices,]
-  a<-partitionDistribution(training,test)
+  #a<-partitionDistribution(training,test)
   test<-test[-(nrow(test)-1),]
   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  list(SolucionmodeloBMB,time)
+  l<-list(SolucionmodeloBMB,time)
 })
 
 ReductionWDBC_BMB_SinInter_Arr<-lapply(seq_along(1:5),function(i){
@@ -1417,3 +1417,64 @@ ReductionWDBC_BMB_SinInter_Arr<-lapply(seq_along(1:5),function(i){
 ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
   100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainBMB_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
 })  
+
+#-------------------------GRASP-----------------------------
+
+#ramdommized greedy algorithm
+greedyRndm <- function(training,test) { 
+  dataset<-training
+  selected<-as.vector(rep(0,ncol(dataset)-1))
+  caracteristicasYaSel<-0
+  bestcandidateFeature<-0
+  bestcandidateAccu<-0
+  bestcandidateIndex<-0
+  bestAccu<-0
+  bestCandidatemodel<-0
+  bestmodel<-0
+  final<-FALSE
+  
+  while( !final) {
+    
+    bestcandidateAccu<-0
+    modelo<-0
+    evalua<-0
+    for(i in seq_along(1:(ncol(dataset)-1))) {
+      if(selected[i]!=1){
+         modelo=Adjust3nn((caracteristicasYaSel+dataset[[i]]),dataset,dataset[[ncol(dataset)]])
+         if(nrow(training)<nrow(test)){
+           pred<-predict(modelo,test[-nrow(test),])
+           post<-postResample(pred,test[-nrow(test),ncol(dataset)])
+           evalua<-post
+         }else{
+           pred<-predict(modelo,test)
+           post<-postResample(pred,test[[ncol(dataset)]])
+           evalua<-post
+         }
+         
+        if((evalua > bestcandidateAccu)){
+          bestcandidateFeature<-dataset[[i]]
+          bestcandidateAccu<-evalua
+          bestcandidateIndex<-i
+          bestCandidatemodel<-modelo
+        }
+      }
+    }
+    
+    if(bestcandidateAccu>bestAccu){
+        selected[bestcandidateIndex]=1
+        caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
+        bestAccu<-bestcandidateAccu
+        bestmodel<-bestCandidatemodel
+    }else{
+        print(paste0("final classification accuracy:",bestAccu ))
+        final=TRUE
+      }
+    }
+  return (list(bestmodel,selected))
+} 
+
+
+
+
+
+
