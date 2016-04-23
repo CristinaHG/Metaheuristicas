@@ -1459,7 +1459,7 @@ greedyRndm <- function(training,test) {
   
   cmejor<-max(ganancias)
   cpeor<-min(ganancias)
-  umbral<-cmejor-alpha(cmejor-cpeor)
+  umbral<-cmejor-alpha*(cmejor-cpeor)
  # cmejor<-which.max(ganancias)
   
   
