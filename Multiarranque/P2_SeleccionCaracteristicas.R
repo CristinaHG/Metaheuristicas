@@ -1438,6 +1438,7 @@ greedyRndm <- function(training,test) {
   umbral<-0
   alpha<-0.3
   ganancias<-0
+  featuresList<-as.vector(seq_along(1:ncol(dataset)-1))
   
   library(parallel)
   no_cores <- detectCores() - 1
