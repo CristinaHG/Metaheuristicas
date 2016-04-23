@@ -1438,7 +1438,11 @@ greedyRndm <- function(training,test) {
   umbral<-0
   alpha<-0.3
   ganancias<-0
-  ganancias<-sapply(seq_along(1:(ncol(dataset)-1)),function(i){
+  
+  library(parallel)
+  no_cores <- detectCores() - 1
+  cl <- makeCluster(no_cores,type="FORK")
+  ganancias<-parSapply(cl,seq_along(1:(ncol(dataset)-1)),function(i){
     modelo=Adjust3nn(dataset[[i]],dataset,dataset[[ncol(dataset)]])
     if(nrow(training)<nrow(test)){
       pred<-predict(modelo,test[-nrow(test),])
@@ -1451,6 +1455,8 @@ greedyRndm <- function(training,test) {
     }
     evalua[[1]]
   })
+  stopCluster(cl)
+  
   cmejor<-max(ganancias)
   cpeor<-min(ganancias)
   umbral<-cmejor-alpha(cmejor-cpeor)
