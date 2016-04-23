@@ -1438,10 +1438,11 @@ greedyRndm <- function(training,test) {
   umbral<-0
   alpha<-0.3
   ganancias<-0
+  randomFeature<-0
   featuresList<-as.vector(seq_along(1:ncol(dataset)-1))
   
   
-  while(length(featuresList)!=0) {
+  while(sum(featuresList)!=0) {
     
     if (final==TRUE){
       break
@@ -1470,19 +1471,18 @@ greedyRndm <- function(training,test) {
     # cmejor<-which.max(ganancias)
     
     LRC<-which(ganancias >= umbral)# reduce list of candidates
-    
-    
-    
-    
+    set.seed(45678*i)
+    randomIndex<-sample(1:length(LRC),1,replace = FALSE)
+    randomFeature<-LRC[randomIndex]
     
     bestcandidateAccu<-0
     modelo<-0
     evalua<-0
-    
-    for(i in seq_along(1:(ncol(dataset)-1))) {
-   # sapply(seq_along(1:(ncol(dataset)-1)),  function(i){
-      if(selected[i]!=1){
-         modelo=Adjust3nn((caracteristicasYaSel+dataset[[i]]),dataset,dataset[[ncol(dataset)]])
+#     
+#     for(i in seq_along(1:(ncol(dataset)-1))) {
+#    # sapply(seq_along(1:(ncol(dataset)-1)),  function(i){
+#       if(selected[i]!=1){
+         modelo=Adjust3nn((caracteristicasYaSel+dataset[[randomFeature]]),dataset,dataset[[ncol(dataset)]])
          if(nrow(training)<nrow(test)){
            pred<-predict(modelo,test[-nrow(test),])
            post<-postResample(pred,test[-nrow(test),ncol(dataset)])
@@ -1493,20 +1493,14 @@ greedyRndm <- function(training,test) {
            evalua<-post
          }
          
-        if((evalua[[1]] > bestcandidateAccu)){
-          bestcandidateFeature<-dataset[[i]]
-          bestcandidateAccu<-evalua[[1]]
-          bestcandidateIndex<-i
-          bestCandidatemodel<-modelo
-        }
-      }
-    }
-    
-    if(bestcandidateAccu>bestAccu){
+    if(evalua[[1]]>bestAccu){
+      bestcandidateFeature<-dataset[[randomFeature]]
         selected[bestcandidateIndex]=1
+        bestcandidateIndex<-randomFeature
+        featuresList[randomFeature]<-0
         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
-        bestAccu<-bestcandidateAccu
-        bestmodel<-bestCandidatemodel
+        bestAccu<-evalua[[1]]
+        bestmodel<-modelo
     }else{
         print(paste0("final classification accuracy:",bestAccu ))
         final=TRUE
