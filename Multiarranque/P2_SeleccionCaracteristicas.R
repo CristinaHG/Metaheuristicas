@@ -1435,7 +1435,7 @@ greedyRndm <- function(training,test) {
   alpha<-0.3
   ganancias<-0
   randomFeature<-0
-  featuresList<-as.vector(seq_along(1:ncol(dataset)-1))
+  featuresList<-as.vector(seq_along(1:(ncol(dataset)-1)))
   
   
   while(sum(featuresList)!=0) {
