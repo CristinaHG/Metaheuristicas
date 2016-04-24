@@ -1475,7 +1475,7 @@ greedyRndm <- function(training,test) {
     # cmejor<-which.max(ganancias)
     
     LRC<-which(ganancias >= umbral)# reduce list of candidates
-    set.seed(456789*cpeor)
+    set.seed(456789*length(LRC))
     randomIndex<-sample(1:length(LRC),1,replace = FALSE)
     randomFeature<-LRC[randomIndex]
 
