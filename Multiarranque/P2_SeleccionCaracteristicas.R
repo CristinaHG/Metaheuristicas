@@ -1475,7 +1475,7 @@ greedyRndm <- function(training,test,seed) {
     # cmejor<-which.max(ganancias)
     
     LRC<-which(ganancias >= umbral)# reduce list of candidates
-    set.seed(seed*floor(runif(1, min=500, max=(78496325/seed))))
+    set.seed(seed*(runif(1, min=1000, max=(78496327/seed)))+sum(LRC))
     randomIndex<-sample(1:length(LRC),1,replace = FALSE)
     randomFeature<-LRC[randomIndex]
 
@@ -1529,7 +1529,7 @@ set.seed(123456)
 indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
    training=wdbcNormalized[indices,]
    test=wdbcNormalized[-indices,]
-graspPrueba<-GRASP(training,test,10)
+graspPrueba<-GRASP(training,test,25)
 
 
 
