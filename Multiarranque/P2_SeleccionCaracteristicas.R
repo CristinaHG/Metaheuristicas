@@ -1443,10 +1443,12 @@ greedyRndm <- function(training,test,seed) {
     if (final==TRUE){
       break
     }
-      library(parallel)
-      no_cores <- detectCores() - 1
-      cl <- makeCluster(no_cores,type="FORK")
-      ganancias<-parSapply(cl,seq_along(1:(length(featuresList))),function(i){
+#       library(parallel)
+#       no_cores <- detectCores() - 1
+#       cl <- makeCluster(no_cores,type="FORK")
+      
+      #ganancias<-parSapply(cl,seq_along(1:(length(featuresList))),function(i){
+      ganancias<-sapply(seq_along(1:(length(featuresList))),function(i){
         if(featuresList[i]!=0){
             modelo=Adjust3nn(dataset[[featuresList[i]]],dataset,dataset[[ncol(dataset)]])
             if(nrow(training)<nrow(test)){
@@ -1463,7 +1465,7 @@ greedyRndm <- function(training,test,seed) {
           0
         }
     })
-    stopCluster(cl)
+  #  stopCluster(cl)
     
     cmejor<-max(ganancias)
     if (min(ganancias)==0){
@@ -1512,8 +1514,11 @@ greedyRndm <- function(training,test,seed) {
 
 
 GRASP<-function(training,test,numSol){
- 
-  GreedySolutions<-sapply(seq_along(1:numSol),function(i){
+  library(parallel)
+  no_cores <- detectCores() - 1
+  cl <- makeCluster(no_cores,type="FORK")
+  
+  GreedySolutions<-parSapply(cl,seq_along(1:numSol),function(i){
     set.seed(i)
      i.seed<-(i*floor(runif(1, min=700, max=2829)))
 #     RNGkind("Mersenne-Twister")
@@ -1521,6 +1526,12 @@ GRASP<-function(training,test,numSol){
     solution<-greedyRndm(training,test,i.seed)
     solution
 })
+  stopCluster(cl)
+  
+  
+  
+  
+  
   return(GreedySolutions)
 }
 
