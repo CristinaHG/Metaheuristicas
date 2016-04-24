@@ -1425,11 +1425,7 @@ greedyRndm <- function(training,test) {
   dataset<-training
   selected<-as.vector(rep(0,ncol(dataset)-1))
   caracteristicasYaSel<-0
-  bestcandidateFeature<-0
-  bestcandidateAccu<-0
-  bestcandidateIndex<-0
   bestAccu<-0
-  bestCandidatemodel<-0
   bestmodel<-0
   final<-FALSE
   LRC<-0
@@ -1450,23 +1446,27 @@ greedyRndm <- function(training,test) {
       library(parallel)
       no_cores <- detectCores() - 1
       cl <- makeCluster(no_cores,type="FORK")
-      ganancias<-parSapply(cl,seq_along(1:(ncol(dataset)-1)),function(i){
-      modelo=Adjust3nn(dataset[[i]],dataset,dataset[[ncol(dataset)]])
-      if(nrow(training)<nrow(test)){
-        pred<-predict(modelo,test[-nrow(test),])
-        post<-postResample(pred,test[-nrow(test),ncol(dataset)])
-        evalua<-post
-      }else{
-        pred<-predict(modelo,test)
-        post<-postResample(pred,test[[ncol(dataset)]])
-        evalua<-post
-      }
-      evalua[[1]]
+      ganancias<-parSapply(cl,seq_along(1:(length(featuresList))),function(i){
+        if(featuresList[i]!=0){
+            modelo=Adjust3nn(dataset[[featuresList[i]]],dataset,dataset[[ncol(dataset)]])
+            if(nrow(training)<nrow(test)){
+              pred<-predict(modelo,test[-nrow(test),])
+              post<-postResample(pred,test[-nrow(test),ncol(dataset)])
+              evalua<-post
+            }else{
+              pred<-predict(modelo,test)
+              post<-postResample(pred,test[[ncol(dataset)]])
+              evalua<-post
+            }
+            evalua[[1]]
+        }else{
+          0
+        }
     })
     stopCluster(cl)
     
     cmejor<-max(ganancias)
-    cpeor<-min(ganancias)
+    cpeor<-min(ganancias[-which(ganancias==0)])
     umbral<-cmejor-alpha*(cmejor-cpeor)
     # cmejor<-which.max(ganancias)
     
@@ -1474,8 +1474,7 @@ greedyRndm <- function(training,test) {
     set.seed(45678*i)
     randomIndex<-sample(1:length(LRC),1,replace = FALSE)
     randomFeature<-LRC[randomIndex]
-    
-    bestcandidateAccu<-0
+
     modelo<-0
     evalua<-0
 #     
