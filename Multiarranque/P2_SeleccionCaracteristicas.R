@@ -1421,7 +1421,7 @@ BMB<-function(training,test){
 #-------------------------GRASP-----------------------------
 
 #ramdommized greedy algorithm
-greedyRndm <- function(training,test) { 
+greedyRndm <- function(training,test,seed) { 
   dataset<-training
   selected<-as.vector(rep(0,ncol(dataset)-1))
   caracteristicasYaSel<-0
@@ -1475,7 +1475,7 @@ greedyRndm <- function(training,test) {
     # cmejor<-which.max(ganancias)
     
     LRC<-which(ganancias >= umbral)# reduce list of candidates
-    set.seed(456789*length(LRC))
+    set.seed(seed*floor(runif(1, min=500, max=(78496325/seed))))
     randomIndex<-sample(1:length(LRC),1,replace = FALSE)
     randomFeature<-LRC[randomIndex]
 
@@ -1512,19 +1512,24 @@ greedyRndm <- function(training,test) {
 
 
 GRASP<-function(training,test,numSol){
-  
+ 
   GreedySolutions<-sapply(seq_along(1:numSol),function(i){
-    solution<-greedyRndm(training,test)
-    solucion
+    set.seed(i)
+     i.seed<-(i*floor(runif(1, min=700, max=2829)))
+#     RNGkind("Mersenne-Twister")
+#     .Random.seed[-i*578923]
+    solution<-greedyRndm(training,test,i.seed)
+    solution
 })
   return(GreedySolutions)
 }
+
 
 set.seed(123456)
 indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
    training=wdbcNormalized[indices,]
    test=wdbcNormalized[-indices,]
-greedyPrueba<-greedyRndm(training,test)
+graspPrueba<-GRASP(training,test,10)
 
 
 
