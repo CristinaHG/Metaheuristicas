@@ -1528,11 +1528,25 @@ GRASP<-function(training,test,numSol){
 })
   stopCluster(cl)
   
+  library(parallel)
+  no_cores <- detectCores() - 1
+  cl <- makeCluster(no_cores,type="FORK")
+  ModelosBL <- parLapply(cl,seq_along(1:ncol(GreedySolutions)),  function(i){
+    #set.seed(12345*i)
+    #vecina<-sample(0:1,nfeatures,replace=TRUE)
+    vecina<-unlist(GreedySolutions[2,i])
+    modelo<-LocalSearchModified(training,test,vecina)
+    modelo
+  }) 
+  stopCluster(cl)
   
-  
-  
-  
-  return(GreedySolutions)
+  for(i in seq_along(ModelosBL)){
+    if(ModelosBL[[i]][[3]][1]>BestAccuracyGlobal){
+      BestAccuracyGlobal<-ModelosBL[[i]][[3]][1]
+      bestIndex<-i
+    }
+  }
+  return(ModelosBL[[i]])
 }
 
 
