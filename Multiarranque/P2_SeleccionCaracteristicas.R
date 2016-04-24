@@ -1509,6 +1509,17 @@ greedyRndm <- function(training,test) {
     }
   return (list(bestmodel,selected,bestAccu))
 } 
+
+
+GRASP<-function(training,test,numSol){
+  
+  GreedySolutions<-sapply(seq_along(1:numSol),function(i){
+    solution<-greedyRndm(training,test)
+    solucion
+})
+  return(GreedySolutions)
+}
+
 set.seed(123456)
 indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
    training=wdbcNormalized[indices,]
