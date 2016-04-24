@@ -1466,12 +1466,16 @@ greedyRndm <- function(training,test) {
     stopCluster(cl)
     
     cmejor<-max(ganancias)
-    cpeor<-min(ganancias[-which(ganancias==0)])
+    if (min(ganancias)==0){
+      cpeor<-min(ganancias[-which(ganancias==0.00)])
+    }else{
+      cpeor<-min(ganancias)
+    }
     umbral<-cmejor-alpha*(cmejor-cpeor)
     # cmejor<-which.max(ganancias)
     
     LRC<-which(ganancias >= umbral)# reduce list of candidates
-    set.seed(45678*i)
+    set.seed(456789*cpeor)
     randomIndex<-sample(1:length(LRC),1,replace = FALSE)
     randomFeature<-LRC[randomIndex]
 
