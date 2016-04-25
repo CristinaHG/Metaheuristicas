@@ -1520,6 +1520,7 @@ greedyRndm <- function(training,test,seed) {
 
 GRASP<-function(training,test,numSol){
   BestAccuracyGlobal<-0
+  bestIndex<-0
   dataset<-training
   library(parallel)
   no_cores <- detectCores() - 1
@@ -1535,35 +1536,23 @@ GRASP<-function(training,test,numSol){
 })
   stopCluster(cl)
   
-#   library(parallel)
-#   no_cores <- detectCores() - 1
-#   cl <- makeCluster(no_cores,type="FORK")
-  
-  for(i in seq_along(1:ncol(GreedySolutions))){
+  library(parallel)
+  no_cores <- detectCores() - 1
+  cl <- makeCluster(no_cores,type="FORK")
+  ModelosBL <- parLapply(cl,seq_along(1:ncol(GreedySolutions)),  function(i){
     vecina<-GreedySolutions[2,i][[1]]
-    modelo<-LocalSearchModified(dataset,test,vecina)
-    print(modelo)
-  }
-  
-  
-  
-  ModelosBL <- lapply(seq_along(1:ncol(GreedySolutions)),  function(i){
-    #set.seed(12345*i)
-    #vecina<-sample(0:1,nfeatures,replace=TRUE)
-    vecina<-as.integer(GreedySolutions[2,i][[1]])
     modelo<-LocalSearchModified(training,test,vecina)
-    print(modelo)
     modelo
   }) 
-  #stopCluster(cl)
+  stopCluster(cl)
   
   for(i in seq_along(ModelosBL)){
-    if(ModelosBL[[i]][[3]][1]>BestAccuracyGlobal){
-      BestAccuracyGlobal<-ModelosBL[[i]][[3]][1]
+    if(ModelosBL[[i]][[3]][[1]]>BestAccuracyGlobal){
+      BestAccuracyGlobal<-ModelosBL[[i]][[3]][[1]]
       bestIndex<-i
     }
   }
-  return(ModelosBL[[i]])
+  return(ModelosBL[[bestIndex]])
 }
 
 
