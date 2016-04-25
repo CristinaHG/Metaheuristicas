@@ -1514,6 +1514,8 @@ greedyRndm <- function(training,test,seed) {
 
 
 GRASP<-function(training,test,numSol){
+  BestAccuracyGlobal<-0
+  
   library(parallel)
   no_cores <- detectCores() - 1
   cl <- makeCluster(no_cores,type="FORK")
