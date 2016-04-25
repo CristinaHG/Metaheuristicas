@@ -1327,7 +1327,7 @@ BMB<-function(training,test){
       bestIndex<-i
     }
   }
-  return(ModelosBL[[i]])
+  return(ModelosBL[[bestIndex]])
 }
 
 
