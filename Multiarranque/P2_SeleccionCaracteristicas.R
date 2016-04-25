@@ -1264,6 +1264,7 @@ LocalSearchModified<-function(training,test,sIni){
     for( i in seq_along(selected)){
       if(!bestSolFound){
         vecina<-flip(selected,i)
+        if(sum(vecina)!=0){
         #evaluaVecina=modelo(getFeatures(vecina,dataset))
         modeloActual<-Adjust3nn(getFeatures(vecina,dataset),dataset,dataset[[ncol(dataset)]])
        # evaluaVecina<-modeloActual$results$Accuracy #cambiar
@@ -1277,6 +1278,10 @@ LocalSearchModified<-function(training,test,sIni){
           evaluaVecina<-post
         }
         nEval<-nEval+1
+        }else{
+          evaluaVecina<-0
+          nEval<-nEval+1
+        }
         
         if(evaluaVecina>AccuracyActual){
           bestSolFound=TRUE
@@ -1515,7 +1520,7 @@ greedyRndm <- function(training,test,seed) {
 
 GRASP<-function(training,test,numSol){
   BestAccuracyGlobal<-0
-  
+  dataset<-training
   library(parallel)
   no_cores <- detectCores() - 1
   cl <- makeCluster(no_cores,type="FORK")
@@ -1530,17 +1535,27 @@ GRASP<-function(training,test,numSol){
 })
   stopCluster(cl)
   
-  library(parallel)
-  no_cores <- detectCores() - 1
-  cl <- makeCluster(no_cores,type="FORK")
-  ModelosBL <- parLapply(cl,seq_along(1:ncol(GreedySolutions)),  function(i){
+#   library(parallel)
+#   no_cores <- detectCores() - 1
+#   cl <- makeCluster(no_cores,type="FORK")
+  
+  for(i in seq_along(1:ncol(GreedySolutions))){
+    vecina<-GreedySolutions[2,i][[1]]
+    modelo<-LocalSearchModified(dataset,test,vecina)
+    print(modelo)
+  }
+  
+  
+  
+  ModelosBL <- lapply(seq_along(1:ncol(GreedySolutions)),  function(i){
     #set.seed(12345*i)
     #vecina<-sample(0:1,nfeatures,replace=TRUE)
-    vecina<-unlist(GreedySolutions[2,i])
+    vecina<-as.integer(GreedySolutions[2,i][[1]])
     modelo<-LocalSearchModified(training,test,vecina)
+    print(modelo)
     modelo
   }) 
-  stopCluster(cl)
+  #stopCluster(cl)
   
   for(i in seq_along(ModelosBL)){
     if(ModelosBL[[i]][[3]][1]>BestAccuracyGlobal){
@@ -1556,7 +1571,7 @@ set.seed(123456)
 indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
    training=wdbcNormalized[indices,]
    test=wdbcNormalized[-indices,]
-graspPrueba<-GRASP(training,test,25)
+graspPrueba<-GRASP(training,test,5)
 
 
 
