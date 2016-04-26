@@ -1560,7 +1560,7 @@ set.seed(123456)
 indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
    training=wdbcNormalized[indices,]
    test=wdbcNormalized[-indices,]
-graspPrueba<-GRASP(training,test,5)
+graspPrueba<-GRASP(training,test,25)
 
 
 
