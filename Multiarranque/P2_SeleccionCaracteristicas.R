@@ -1552,6 +1552,18 @@ GRASP<-function(training,test,numSol){
       bestIndex<-i
     }
   }
+  
+  bestIndex<-sapply(seq_along(ModelosBL),function(i){
+    if(ModelosBL[[i]][[3]][[1]]>BestAccuracyGlobal){
+      BestAccuracyGlobal<-ModelosBL[[i]][[3]][[1]]
+      bestIndex<-i
+    }
+    return (bestIndex)
+  })
+  
+  
+  
+  
   return(ModelosBL[[bestIndex]])
 }
 
