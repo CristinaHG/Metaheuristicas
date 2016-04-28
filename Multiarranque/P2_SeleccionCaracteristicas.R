@@ -76,20 +76,6 @@ model <- function(z,test) {
 }
 
 
-Trainvstest3nn <-0
-  for(i in seq_along(1:5)){
-  set.seed(i*9876543)
-  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-  training=AritmiaNormalized[indices,]
-  test=AritmiaNormalized[-indices,]
-  
-  time<-system.time(solution<-model(training,test))
-  solucion
-}
-
-
-
-
 #---------------------función que me devuelve las características del data set a partir de una codificación binaria
 getFeatures<-function(selected,dataset){
   featuresList<-lapply(seq_along(selected), function(i) {
@@ -114,22 +100,22 @@ getFeatures<-function(selected,dataset){
 Trainvstest3nn <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-  training=AritmiaNormalized[indices,]
-  test=AritmiaNormalized[-indices,]
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
   
   time<-system.time(solution<-model(training,test))
   list(solution,time)
 })
 
-modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
+TestvsTrain3nn <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
-  test=AritmiaNormalized[indices,]
-  training=AritmiaNormalized[-indices,]
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
   #a<-partitionDistribution(training,test)
   test<-test[-(nrow(test)-1),]
-  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  l<-list(SolucionmodeloBMB,time)
+  time<-system.time(solution<-model(training,test))
+  list(solution,time)
 })
 
 
