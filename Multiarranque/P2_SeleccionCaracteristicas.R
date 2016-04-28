@@ -112,7 +112,7 @@ TestvsTrain3nn <- sapply(seq_along(1:5),  function(i){
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   test=wdbcNormalized[indices,]
   training=wdbcNormalized[-indices,]
-  test<-test[-(nrow(test)-1),]
+  #test<-test[-(nrow(test)-1),]
   time<-system.time(solution<-model(training,test))
   list(solution,time)
 })
@@ -128,12 +128,11 @@ Trainvstest3nnML <- sapply(seq_along(1:5),  function(i){
   list(solution,time)
 })
 
-TestvsTrain3nn <- sapply(seq_along(1:5),  function(i){
+TestvsTrain3nnML <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-  test=wdbcNormalized[indices,]
-  training=wdbcNormalized[-indices,]
-  test<-test[-(nrow(test)-1),]
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
   time<-system.time(solution<-model(training,test))
   list(solution,time)
 })
