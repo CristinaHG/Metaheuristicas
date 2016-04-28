@@ -56,12 +56,12 @@ Adjust3nn<-function(y,x){
 }
 
 
-#funcion aplicamodelo
-modelo <- function(y,z,test) { 
+#function that adjust KNN with K=3 using all as response
+model <- function(z,test) { 
   #train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
   evalua<-0
-  set.seed(1)
-  modelo<-train(y ~.,data=z,method="knn", tuneGrid=expand.grid(.k=3))
+  set.seed(12345)
+  modelo<-train(z$class ~.,data=z,method="knn", tuneGrid=expand.grid(.k=3))
   if(nrow(z)<nrow(test)){
     pred<-predict(modelo,test[-nrow(test),])
     post<-postResample(pred,test[-nrow(test),ncol(z)])
