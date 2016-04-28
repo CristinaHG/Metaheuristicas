@@ -112,12 +112,31 @@ TestvsTrain3nn <- sapply(seq_along(1:5),  function(i){
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   test=wdbcNormalized[indices,]
   training=wdbcNormalized[-indices,]
-  #a<-partitionDistribution(training,test)
   test<-test[-(nrow(test)-1),]
   time<-system.time(solution<-model(training,test))
   list(solution,time)
 })
 
+#---------for Movement Libras----------
+Trainvstest3nnML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  
+  time<-system.time(solution<-model(training,test))
+  list(solution,time)
+})
+
+TestvsTrain3nn <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  test<-test[-(nrow(test)-1),]
+  time<-system.time(solution<-model(training,test))
+  list(solution,time)
+})
 
 
 
