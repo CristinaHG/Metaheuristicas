@@ -63,16 +63,32 @@ model <- function(z,test) {
   set.seed(12345)
   modelo<-train(z$class ~.,data=z,method="knn", tuneGrid=expand.grid(.k=3))
   if(nrow(z)<nrow(test)){
-    pred<-predict(modelo,test[-nrow(test),])
-    post<-postResample(pred,test[-nrow(test),ncol(z)])
+    test<-test[-nrow(test),]
+    pred<-predict(modelo,test)
+    post<-postResample(pred,test$class)
     evalua<-post
   }else{
     pred<-predict(modelo,test)
-    post<-postResample(pred,test[[ncol(z)]])
+    post<-postResample(pred,test$class)
     evalua<-post
   }
   return(evalua)
 }
+
+
+Trainvstest3nn <-0
+  for(i in seq_along(1:5)){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(solution<-model(training,test))
+  solucion
+}
+
+
+
 
 #---------------------función que me devuelve las características del data set a partir de una codificación binaria
 getFeatures<-function(selected,dataset){
