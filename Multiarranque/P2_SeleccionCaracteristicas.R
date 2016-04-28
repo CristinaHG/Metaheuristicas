@@ -73,62 +73,6 @@ model <- function(z,test) {
   }
   return(evalua)
 }
-i<-1
-colnames(iris)[ncol(iris)]<-"y"
-set.seed(i*9876543)
-indices<-createDataPartition(iris$y, p =.50, list = FALSE)
-training=iris[indices,]
-test=iris[-indices,]
-m<-modelo(training$wdbc.class,training,test)
-# library(foreach)
-# library(doParallel)
-# registerDoParallel(cores=detectCores(all.tests=TRUE))
-
-#algoritmo greedy
-# greedy <- function(x) { 
-#   dataset<-x
-#   selected<-as.vector(rep(0,ncol(dataset)-1))
-#   #df<-data.frame(colnames(AritmiaNormalized))
-#   caracteristicasYaSel<-0
-#   bestcandidateFeature<-0
-#   bestcandidateAccu<-0
-#   bestcandidateIndex<-0
-#   bestAccu<-0
-# bestCandidatemodel<-0
-# bestmodel<-0
-#   final<-FALSE
-#   
-#   while( !final) {
-#     
-#     bestcandidateAccu<-0
-#     modelo<-0
-#     evalua<-0
-#     for(i in seq_along(1:(ncol(dataset)-1))) {
-#       if(selected[i]!=1){
-#          modelo=Adjust3nn((caracteristicasYaSel+dataset[[i]]),dataset,dataset[[ncol(dataset)]])
-#          evalua=modelo$results$Accuracy
-#         if((evalua > bestcandidateAccu)){
-#           bestcandidateFeature<-dataset[[i]]
-#           bestcandidateAccu<-evalua
-#           bestcandidateIndex<-i
-#           bestCandidatemodel<-modelo
-#         }
-#       }
-#     }
-#     
-#     if(bestcandidateAccu>bestAccu){
-#         selected[bestcandidateIndex]=1
-#         caracteristicasYaSel<-caracteristicasYaSel+bestcandidateFeature
-#         bestAccu<-bestcandidateAccu
-#         bestmodel<-bestCandidatemodel
-#     }else{
-#         print(paste0("final classification accuracy:",bestAccu ))
-#         final=TRUE
-#       }
-#     }
-#   return (list(bestmodel,selected))
-# } 
-
 
 #---------------------función que me devuelve las características del data set a partir de una codificación binaria
 getFeatures<-function(selected,dataset){
@@ -138,7 +82,6 @@ getFeatures<-function(selected,dataset){
   }) 
   
   features<-Reduce('+',Filter(Negate(is.null), featuresList))
-
   return (features)
 }
 
@@ -149,274 +92,34 @@ getFeatures<-function(selected,dataset){
      return (selected)
    }
    
-#-----------------LOCAL SEARCH------------------   
-# LocalSearch<-function(x){
-#   dataset=x
-#   nfeatures<-ncol(x)-1
-#   set.seed(13456) #semilla para que Salva pueda obtener la misma solución inicial
-#   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-#   selected<-SolInitial
-#   AccuracyActual<-0
-#   bestSolFound=FALSE
-#   nEval<-0
-#   vecina<-0
-#   fin<-FALSE
-#   modeloActual<-Adjust3nn(getFeatures(selected,dataset),dataset,dataset[[ncol(dataset)]])
-#   bestmodel<-0
-#   AccuracyActual<-modeloActual$results$Accuracy 
-#   Accuracyinicial<-AccuracyActual
-#   
-# #  while((!fin) && (nEval<15000)){
-#   while(!fin){
-#     if(nEval==15000){
-#       break
-#     }
-#     bestSolFound=FALSE
-#     #for( i in seq_along(selected) && (!bestSolFound)){
-#     for( i in seq_along(selected)){
-#     if(!bestSolFound){
-#         vecina<-flip(selected,i)
-#         #evaluaVecina=modelo(getFeatures(vecina,dataset))
-#         modeloActual<-Adjust3nn(getFeatures(vecina,dataset),dataset,dataset[[ncol(dataset)]])
-#         evaluaVecina<-modeloActual$results$Accuracy
-#         nEval<-nEval+1
-#     
-#      if(evaluaVecina>AccuracyActual){
-#        bestSolFound=TRUE
-#        selected<-vecina
-#        AccuracyActual<-evaluaVecina
-#        bestmodel<-modeloActual
-#       # break
-#      }
-#       if(i==nfeatures){
-#         fin<-TRUE
-#         break
-#       }
-#     }else{
-#       break
-#     }
-#     }
-#  #   if((!bestSolFound) && (i==nfeatures)){
-# #      fin=TRUE
-#   #  }
-#   }
-#   return (list(bestmodel,selected))
-# }
-# 
+#---------CV 2X5 for 3NN using all variables as predictors----------
 
-# --------SIMULATED ANNEALING---------------------------
-
-# SimulateAnnealing<-function(x){
-#   mu<-0.3
-#   phi<-0.3
-#   dataset=x
-#   nfeatures<-ncol(x)-1
-#   set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
-#   SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-#   SolActual<-SolInitial
-#   max_vecinos<- 10*nfeatures
-#   max_exitos<- 0.1*max_vecinos
-#   nEval<-0
-#   Tfinal<-(10^-3)
-#  # nEnfriamientos<-15000/(max_vecinos*max_vecinos)
-#   M<-15
-#   sinExito<-FALSE
-#   randomIndex<-0
-#   bestGlobal<-SolInitial
-#   BestAccuracyGlobal<-0
-#   AccuracyActual<-0
-#   bestmodel<-0
-#   Actualmodel<-0
-#   Vecinamodel<-0
-#   Actualmodel<-Adjust3nn(getFeatures(SolInitial,dataset),dataset,dataset[[ncol(dataset)]])
-#   bestmodel<-Actualmodel
-#   
-#   #AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
-#   AccuracyInitial<-Actualmodel$results$Accuracy
-#   Tinitial<-(mu*AccuracyInitial)/(-log(phi))
-#   Tactual<-Tinitial
-#   BestAccuracyGlobal<-AccuracyInitial
-#   AccuracyActual<-AccuracyInitial
-#   nAceptados<-0
-#   diferencia<-0
-#   Paceptacion<-0
-#   nIter<-0
-#   u<-0
-#   Tk<-0
-#   
-#   print(paste0("temperatura Inicial :" ,Tactual))
-#   
-#   while(Tactual>=Tfinal){ #si iteraccion sin exito termina
-#     if(nIter==1500){
-#       break 
-#     }
-#     if(sinExito){
-#       break
-#     }
-#     
-#     print(paste("temperatura actual :" ,Tactual))
-#     
-#     for(i in seq_along(1:max_vecinos)){
-#       if(nEval==max_vecinos){
-#         if(nAceptados==0){
-#           sinExito=TRUE
-#         }
-#         break
-#       }
-#       if(nAceptados==max_exitos){
-#         break
-#       }
-#       set.seed(i*282935)
-#       randomIndex<-sample(1:nfeatures,1,replace=FALSE)
-#       vecina<-flip(SolActual,randomIndex)
-#       featuresVecina<-getFeatures(vecina,dataset)
-#       Vecinamodel<-Adjust3nn(featuresVecina,dataset,dataset[[ncol(dataset)]])
-#       #VecinaAccu<-modelo(featuresVecina)
-#       VecinaAccu<-Vecinamodel$results$Accuracy
-#       nEval<-nEval+1
-#       diferencia<-(AccuracyActual-VecinaAccu)
-#       #se la queda si es mejor o si criterio aceptacion ese
-#       if(diferencia<0){
-#         SolActual<-vecina
-#         AccuracyActual<-VecinaAccu
-#         Actualmodel<-Vecinamodel
-#         nAceptados<-nAceptados+1
-#       }else{
-#         set.seed(i*282935)
-#         u<-sample(0:1,1,replace=FALSE)
-#         Paceptacion<-exp((-diferencia)/Tactual)
-#         if(u<Paceptacion){
-#           SolActual<-vecina
-#           AccuracyActual<-VecinaAccu
-#           Actualmodel<-Vecinamodel
-#           nAceptados<-nAceptados+1
-#         }
-#       }
-#       
-#       if(AccuracyActual>BestAccuracyGlobal){
-#         BestAccuracyGlobal<-AccuracyActual
-#         bestGlobal<-SolActual
-#         bestmodel<- Actualmodel
-#       }
-#     }
-#     #cuando termina la busqueda local,enfria
-#     Beta<-(Tinitial-Tfinal)/(M*Tinitial*Tfinal)
-#     Tk<-Tactual/(1+(Beta*Tactual)) 
-#     Tactual<-Tk
-#     nIter<-nIter+1
-#     
-#   }
-#   print(paste("best acuuracy :" ,BestAccuracyGlobal))
-#   Lresult<-list(bestmodel,bestGlobal)
-#    return(Lresult) 
-#   }
-
-#-----------------------TABU SEARCH SIMPLE------------------------- 
+#---------for WDBC----------
+Trainvstest3nn <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
   
-#   TabuSearch<-function(x){
-#     dataset<-x
-#     nfeatures<-(ncol(dataset)-1)
-#     TabuListLength<-(nfeatures/3)
-#     TabuListMovements<-list()
-#     set.seed(98365076) #semilla para que salva pueda obtener la misma solución inicial
-#     SolInitial<-sample(0:1,nfeatures, replace = TRUE)
-#     SolActual<-SolInitial
-#     AccuracyActual<-0
-#     bestGlobal<-SolInitial
-#     BestAccuracyGlobal<-0
-#     nEval<-0
-#     bestmodel<-0
-#     Actualmodel<-0
-#     Initialmodel<-0
-#     Vecinamodel<-0
-#     Initialmodel<-Adjust3nn(getFeatures(SolInitial,dataset),dataset,dataset[[ncol(dataset)]])
-#     AccuracyInitial<-Initialmodel$results$Accuracy
-#     Actualmodel<-Initialmodel
-#     #AccuracyInitial<-modelo(getFeatures(SolInitial,dataset))
-#     AccuracyActual<-AccuracyInitial
-#     BestAccuracyGlobal<-AccuracyInitial
-#     selected<-0
-#     resultados<-0
-#     
-#     while(nEval<1500){
-#       
-#       if(length(TabuListMovements)>=TabuListLength){
-#         TabuListMovements<-TabuListMovements[-1]
-#       }
-#       set.seed(nEval*3+678914)
-#       selected<-sample(1:nfeatures,30,replace=FALSE)
-#       
-#      # for(i in seq_along(selected)){
-#       #  vecina<-flip(SolActual,selected[[i]])
-#        # featuresVecina<-getFeatures(vecina,dataset)
-#         #VecinaAccu<-modelo(featuresVecina)
-#         #resultados<-c(resultados,VecinaAccu)
-#       #}
-#       #sort(resultados,decreasing = TRUE)
-#     #}
-# 
-#     Modelos <- sapply(seq_along(selected),  function(i){
-#       vecina<-flip(SolActual,selected[[i]])
-#       featuresVecina<-getFeatures(vecina,dataset)
-#       Vecinamodel<-Adjust3nn(featuresVecina,dataset,dataset[[ncol(dataset)]])
-#       #VecinaAccu<-modelo(featuresVecina)
-#       #VecinaAccu<-Vecinamodel$results$Accuracy
-#       #list(c(vecina),c(VecinaAccu))
-#       list(Vecinamodel,vecina)
-#       }) 
-#     AccuModelos<-sapply(seq_along(selected),  function(i)
-#       (Modelos[1,i][[1]]$results$Accuracy))
-#     
-#     nEval<-(nEval+30)
-#     bestIndex<-which.max(AccuModelos)
-#     AccuModelosSorted<-sort(AccuModelos,decreasing = TRUE)
-#     
-#     #compruebo si el primero es tabu
-#     isTabu<-if(is.na(match(selected[bestIndex],TabuListMovements))){
-#         FALSE
-#       }else{
-#         TRUE
-#       }
-#     
-#     if(!isTabu){
-#       #SolActual
-#       if(AccuModelosSorted[[1]]>AccuracyActual){ #criterio aspiración
-#       SolActual<-Modelos[2,bestIndex][[1]]
-#       AccuracyActual<-AccuModelosSorted[[1]]
-#       Actualmodel<-Modelos[1,bestIndex][[1]]
-#       TabuListMovements<-c(TabuListMovements,bestIndex)
-#       }
-#     }else{
-#       #comrobar qe el resto no son tabu
-#       noTareTabu<-sapply(seq_along(AccuModelos),function(x){
-#           getIndex<-selected[[x]]
-#           c(is.na(match(getIndex,TabuListMovements)))
-#         })
-#       sapply(seq_along(AccuModelos), function(i){
-#         if(noTareTabu[[i]]){
-#           if(AccuModelos[[i]]>AccuracyActual){
-#             AccuracyActual<-AccuModelos[[i]]
-#             Actualmodel<-Modelos[1,i][[1]]
-#             SolActual<-Modelos[2,i][[1]]
-#             TabuListMovements<-c(TabuListMovements,selected[[i]])
-#           }
-#           }else{ #aunque sea tabú me la puedo quedar si mejora la global
-#             if(AccuModelos[[i]]>BestAccuracyGlobal){
-#               AccuracyActual<-AccuModelos[[i]]
-#               Actualmodel<-Modelos[1,i][[1]]
-#               SolActual<-Modelos[2,i][[1]]
-#             }
-#           }
-#         })
-#     }
-#     if(AccuracyActual> BestAccuracyGlobal){
-#       BestAccuracyGlobal<-AccuracyActual
-#       bestmodel<-Actualmodel
-#       bestGlobal<-SolActual
-#     }
-#     }
-#     return (list(bestmodel,bestGlobal))
-#   }
+  time<-system.time(solution<-model(training,test))
+  list(solution,time)
+})
+
+modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  #a<-partitionDistribution(training,test)
+  test<-test[-(nrow(test)-1),]
+  time<-system.time(SolucionmodeloBMB<-BMB(training,test))
+  l<-list(SolucionmodeloBMB,time)
+})
+
+
+
+
+
 #-----------------------
 #       PRÁCTICA 2
 #-----------------------
