@@ -329,7 +329,7 @@ ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
 
 modelosTrainvstestBMB_Arr <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
   training=AritmiaNormalized[indices,]
   test=AritmiaNormalized[-indices,]
   
@@ -339,7 +339,7 @@ modelosTrainvstestBMB_Arr <- sapply(seq_along(1:5),  function(i){
 
 modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(AritmiaNormalized$Aritmia.class, p =.50, list = FALSE)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
   test=AritmiaNormalized[indices,]
   training=AritmiaNormalized[-indices,]
   #a<-partitionDistribution(training,test)
