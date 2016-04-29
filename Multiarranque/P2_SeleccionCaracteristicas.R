@@ -88,8 +88,8 @@ getFeatures<-function(selected,dataset){
 }
 
 #-----------------------función que genera vecina------------------   
-   flip<-function(selected,i){
-     if(selected[[i]]==1){ selected[[i]]<-0
+   flip<-function(selected,index){
+     if(selected[[index]]==1){ selected[[index]]<-0
      }else{ selected[[i]]<-1}
      return (selected)
    }
