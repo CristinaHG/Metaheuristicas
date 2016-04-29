@@ -237,10 +237,10 @@ LocalSearchModified<-function(training,test,sIni){
 BMB<-function(training,test){
   dataset=training
   nfeatures<-ncol(training)-1
-  bestIndex<-0
-  BestAccuracyGlobal<-0
-  
-  modelo<-0
+  bestIndex<-0 #index of best model in Model's array
+  BestAccuracyGlobal<-0 #Best accuraccy in global
+ 
+  #generating 25 random solutions and optimizing each one by aplying Local Seach :done parallely
   library(parallel)
   no_cores <- detectCores() - 1
   cl <- makeCluster(no_cores,type="FORK")
@@ -251,13 +251,15 @@ BMB<-function(training,test){
     modelo
   }) 
   stopCluster(cl)
-  #multiarranque[[2]][[3]][1]
+  
+  #checking which Accuracy Model is the best and saving its model's index on Model's list
   for(i in seq_along(ModelosBL)){
     if(ModelosBL[[i]][[3]][1]>BestAccuracyGlobal){
       BestAccuracyGlobal<-ModelosBL[[i]][[3]][1]
       bestIndex<-i
     }
   }
+  #return the best model, which has best accuracy
   return(ModelosBL[[bestIndex]])
 }
 
