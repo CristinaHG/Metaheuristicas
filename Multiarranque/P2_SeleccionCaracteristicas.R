@@ -184,7 +184,7 @@ LocalSearchModified<-function(training,test,sIni){
     pred<-predict(modeloActual,test)
     post<-postResample(pred,test$class)
   }
-  AccuracyActual<-post[1]
+  AccuracyActual<-post[[1]]
   
   while((!fin) && (nEval<15000)){
 #   while(!fin){
@@ -202,11 +202,11 @@ LocalSearchModified<-function(training,test,sIni){
           test<-test[-nrow(test),]
           pred<-predict(modeloActual,test)
           post<-postResample(pred,test$class)
-          evaluaVecina<-post
+          evaluaVecina<-post[[1]]
         }else{
           pred<-predict(modeloActual,test)
           post<-postResample(pred,test$class)
-          evaluaVecina<-post
+          evaluaVecina<-post[[1]]
         }
         nEval<-nEval+1
         }else{
@@ -230,6 +230,15 @@ LocalSearchModified<-function(training,test,sIni){
   }
   return (list(bestmodel,selected,AccuracyActual))
 }
+i<-1
+set.seed(i*9876543)
+indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+training=wdbcNormalized[indices,]
+test=wdbcNormalized[-indices,]
+sIni<-sample(0:1,30,replace=TRUE)
+so1<-LocalSearchModified(training,test,sIni)
+
+
 
 #-----------------BMB------------------   
 BMB<-function(training,test){
