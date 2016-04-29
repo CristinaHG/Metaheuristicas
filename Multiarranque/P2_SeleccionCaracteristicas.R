@@ -226,6 +226,7 @@ LocalSearchModified<-function(training,test,sIni){
       }else{
         break
       }
+      if(nEval>=15000) break
     }
   }
   return (list(bestmodel,selected,AccuracyActual))
