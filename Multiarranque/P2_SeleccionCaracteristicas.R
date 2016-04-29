@@ -299,7 +299,7 @@ ReductionWDBC_BMB_Inter<-lapply(seq_along(1:5),function(i){
 
 modelosTrainvstestBMB_Libras <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
   training=LibrasNormalized[indices,]
   test=LibrasNormalized[-indices,]
   
@@ -309,7 +309,7 @@ modelosTrainvstestBMB_Libras <- sapply(seq_along(1:5),  function(i){
 
 modelosTestvsTrainBMB_Libras <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(LibrasNormalized$Libras.Class, p =.50, list = FALSE)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
   test=LibrasNormalized[indices,]
   training=LibrasNormalized[-indices,]
   
