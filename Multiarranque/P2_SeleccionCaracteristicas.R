@@ -165,47 +165,47 @@ TestvsTrain3nnArr <- sapply(seq_along(1:5),  function(i){
 #-----------------LOCAL SEARCH------------------
 # it has been modified from last practice to receive a initial solution as param
 LocalSearchModified<-function(training,test,sIni){
-  dataset=training
-  nfeatures<-ncol(training)-1
-  selected<-sIni
-  AccuracyActual<-0
-  bestSolFound=FALSE
-  nEval<-0
+  dataset<-training
+  nfeatures<-ncol(training)-1 #all except itself
+  selected<-sIni #initially, selected features are the initial solution 
+  AccuracyActual<-0 #best accu at moment. Initially is 0
+  bestSolFound=FALSE 
+  nEval<-0 #number of evaluations,should be no more of 15000. Initially 0
   vecina<-0
-  fin<-FALSE
-  modeloActual<-Adjust3nn(getFeatures(selected,dataset),dataset,dataset[[ncol(dataset)]])
+  fin<-FALSE #gets TRUE if explored all neighborhood without success
+  modeloActual<-Adjust3nn(dataset,getFeatures(selected,dataset)) 
   bestmodel<-0
-  if(nrow(training)<nrow(test)){
-  pred<-predict(modeloActual,test[-nrow(test),])
-  post<-postResample(pred,test[-nrow(test),ncol(dataset)])
-  }else{
+  
+  if(nrow(training)<nrow(test)){ #done because train and test dataset's length should be the same for predict and postResample in caret
+    test<-test[-nrow(test),]
     pred<-predict(modeloActual,test)
-    post<-postResample(pred,test[[ncol(dataset)]])
+    post<-postResample(pred,test$class)
+  }else{#length are the same so predict without removing any row
+    pred<-predict(modeloActual,test)
+    post<-postResample(pred,test$class)
   }
   AccuracyActual<-post[1]
-  Accuracyinicial<-AccuracyActual
   
-  #  while((!fin) && (nEval<15000)){
-  while(!fin){
-    if(nEval==10000){
-      break
-    }
+  while((!fin) && (nEval<15000)){
+#   while(!fin){
+#     if(nEval==10000){
+#       break
+#     }
     bestSolFound=FALSE
     #for( i in seq_along(selected) && (!bestSolFound)){
     for( i in seq_along(selected)){
       if(!bestSolFound){
         vecina<-flip(selected,i)
-        if(sum(vecina)!=0){
-        #evaluaVecina=modelo(getFeatures(vecina,dataset))
-        modeloActual<-Adjust3nn(getFeatures(vecina,dataset),dataset,dataset[[ncol(dataset)]])
-       # evaluaVecina<-modeloActual$results$Accuracy #cambiar
+        if(sum(vecina)!=0){ #comprobation because train dont let adjust a model with no features. If features selected sum 0 => acuracy=0 
+          modeloActual<-Adjust3nn(dataset,getFeatures(vecina,dataset))
         if(nrow(training)<nrow(test)){
-          pred<-predict(modeloActual,test[-nrow(test),])
-          post<-postResample(pred,test[-nrow(test),ncol(dataset)])
+          test<-test[-nrow(test),]
+          pred<-predict(modeloActual,test)
+          post<-postResample(pred,test$class)
           evaluaVecina<-post
         }else{
           pred<-predict(modeloActual,test)
-          post<-postResample(pred,test[[ncol(dataset)]])
+          post<-postResample(pred,test$class)
           evaluaVecina<-post
         }
         nEval<-nEval+1
@@ -219,11 +219,9 @@ LocalSearchModified<-function(training,test,sIni){
           selected<-vecina
           AccuracyActual<-evaluaVecina
           bestmodel<-modeloActual
-          # break
         }
         if(i==nfeatures){
           fin<-TRUE
-          break
         }
       }else{
         break
