@@ -231,14 +231,6 @@ LocalSearchModified<-function(training,test,sIni){
   }
   return (list(bestmodel,selected,AccuracyActual))
 }
-i<-1
-set.seed(i*9876543)
-indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-training=wdbcNormalized[indices,]
-test=wdbcNormalized[-indices,]
-sIni<-sample(0:1,30,replace=TRUE)
-so1<-LocalSearchModified(training,test,sIni)
-
 
 
 #-----------------BMB------------------   
@@ -268,6 +260,14 @@ BMB<-function(training,test){
   }
   return(ModelosBL[[bestIndex]])
 }
+
+i<-1
+set.seed(i*9876543)
+indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+training=wdbcNormalized[indices,]
+test=wdbcNormalized[-indices,]
+sIni<-sample(0:1,30,replace=TRUE)
+so1<-BMB(training,test)
 
 
 ##########BÚSQUEDA MULTIARRANQUE BÁSICA: #########
