@@ -137,6 +137,25 @@ TestvsTrain3nnML <- sapply(seq_along(1:5),  function(i){
   list(solution,time)
 })
 
+#---------for Arritmia----------
+Trainvstest3nnArr <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(solution<-model(training,test))
+  list(solution,time)
+})
+
+TestvsTrain3nnArr <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  time<-system.time(solution<-model(training,test))
+  list(solution,time)
+})
 
 
 
