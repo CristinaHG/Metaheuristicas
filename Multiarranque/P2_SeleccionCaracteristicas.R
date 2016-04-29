@@ -150,9 +150,9 @@ Trainvstest3nnArr <- sapply(seq_along(1:5),  function(i){
 
 TestvsTrain3nnArr <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
-  test=LibrasNormalized[indices,]
-  training=LibrasNormalized[-indices,]
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
   time<-system.time(solution<-model(training,test))
   list(solution,time)
 })
