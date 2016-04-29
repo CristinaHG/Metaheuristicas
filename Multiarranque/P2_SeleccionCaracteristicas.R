@@ -1,10 +1,10 @@
-#leemos bases de datos
+#reading datasets
 library(foreign)
 Aritmia<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/arrhythmia.arff")
 wdbc<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/wdbc.arff")
 Libras<- read.arff("/home/cris/mrcrstnherediagmez@gmail.com/MH/MH-FeatureSelectionProblem/movement_libras.arff")
 
-#-------------------------------normalización y limpieza de los datos--------------------------------
+#-------------------------------normalizing and cleanind data--------------------------------
 normalize <- function(x) { 
   x <- as.matrix(as.numeric(x))
   minAttr=apply(x, 2, min)
@@ -48,7 +48,7 @@ partitionDistribution <- function(training,test) {
 # using caret
 library(caret)
 
-
+#function used to adjust 3nn: receive predictors as param
 Adjust3nn<-function(y,x){
   set.seed(12345)
   modelo<-train(y$class ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
@@ -58,7 +58,6 @@ Adjust3nn<-function(y,x){
 
 #function that adjust KNN with K=3 using all as response
 model <- function(z,test) { 
-  #train5x2  <- trainControl(method = "repeatedcv", number = 2, repeats = 5)
   evalua<-0
   set.seed(12345)
   modelo<-train(z$class ~.,data=z,method="knn", tuneGrid=expand.grid(.k=3))
@@ -76,7 +75,7 @@ model <- function(z,test) {
 }
 
 
-#---------------------función que me devuelve las características del data set a partir de una codificación binaria
+#---------------------function that returns features of dataset that corresponds to selected ones in a binary vector
 getFeatures<-function(selected,dataset){
   featuresList<-lapply(seq_along(selected), function(i) {
     if (selected[[i]]==1) {
@@ -87,7 +86,7 @@ getFeatures<-function(selected,dataset){
   return (features)
 }
 
-#-----------------------función que genera vecina------------------   
+#-----------------------function that generates neightbour by fliping a given position------------------   
    flip<-function(selected,index){
      if(selected[[index]]==1){ selected[[index]]<-0
      }else{ selected[[i]]<-1}
@@ -159,11 +158,12 @@ TestvsTrain3nnArr <- sapply(seq_along(1:5),  function(i){
 
 
 
-#-----------------------
-#       PRÁCTICA 2
-#-----------------------
+#----------------------------------------------
+#       PRACTICE 2: ALGORITHMS
+#----------------------------------------------
 
-#-----------------LOCAL SEARCH------------------   
+#-----------------LOCAL SEARCH------------------
+# it has been modified from last practice to receive a initial solution as param
 LocalSearchModified<-function(training,test,sIni){
   dataset=training
   nfeatures<-ncol(training)-1
