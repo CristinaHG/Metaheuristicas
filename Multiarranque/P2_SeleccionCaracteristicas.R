@@ -263,21 +263,13 @@ BMB<-function(training,test){
   return(ModelosBL[[bestIndex]])
 }
 
-i<-1
-set.seed(i*9876543)
-indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-training=wdbcNormalized[indices,]
-test=wdbcNormalized[-indices,]
-sIni<-sample(0:1,30,replace=TRUE)
-so1<-BMB(training,test)
 
-
-##########BÚSQUEDA MULTIARRANQUE BÁSICA: #########
-#----------------------------------Para wdbc---------------------------------------
+#----------------BMB executions-------------------------------------------
+#----------------------------------for wdbc---------------------------------------
 
 modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   training=wdbcNormalized[indices,]
   test=wdbcNormalized[-indices,]
   
@@ -287,7 +279,7 @@ modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
 
 modelosTestvsTrainBMB <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
-  indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   test=wdbcNormalized[indices,]
   training=wdbcNormalized[-indices,]
   
