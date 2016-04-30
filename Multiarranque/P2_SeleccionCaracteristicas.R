@@ -203,17 +203,17 @@ LocalSearchModified<-function(training,test,sIni){
           pred<-predict(modeloActual,test)
           post<-postResample(pred,test$class)
           evaluaVecina<-post[[1]]
-        }else{
+        }else{ #doing predict and post resample as ever
           pred<-predict(modeloActual,test)
           post<-postResample(pred,test$class)
           evaluaVecina<-post[[1]]
         }
-        nEval<-nEval+1
+        nEval<-nEval+1 #number of evaluated solutions increments
         }else{
           evaluaVecina<-0
           nEval<-nEval+1
         }
-        
+        #if new solution's accuracy is better than actual => update actual solution
         if(evaluaVecina>AccuracyActual){
           bestSolFound=TRUE
           selected<-vecina
@@ -226,7 +226,8 @@ LocalSearchModified<-function(training,test,sIni){
       }else{
         break
       }
-      if(nEval>=15000) break
+      if(nEval>=15000) 
+        break
     }
   }
   return (list(bestmodel,selected,AccuracyActual))
@@ -252,7 +253,7 @@ BMB<-function(training,test){
   }) 
   stopCluster(cl)
   
-  #checking which Accuracy Model is the best and saving its model's index on Model's list
+  #checking which Accuracy(of all adjusted Models) is the best and saving its model's index on Model's list
   for(i in seq_along(ModelosBL)){
     if(ModelosBL[[i]][[3]][1]>BestAccuracyGlobal){
       BestAccuracyGlobal<-ModelosBL[[i]][[3]][1]
