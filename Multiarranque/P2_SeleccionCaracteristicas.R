@@ -159,7 +159,7 @@ TestvsTrain3nnArr <- sapply(seq_along(1:5),  function(i){
 
 
 #----------------------------------------------
-#       PRACTICE 2: ALGORITHMS
+#       PRACTICE 2: MULTI-START METAHEURISTICS
 #----------------------------------------------
 
 #-----------------LOCAL SEARCH------------------
@@ -172,10 +172,10 @@ LocalSearchModified<-function(training,test,sIni){
   bestSolFound=FALSE 
   nEval<-0 #number of evaluations,should be no more of 15000. Initially 0
   vecina<-0
+  AccuracyInitial<-0 #initial accuracy of the solution 
   fin<-FALSE #gets TRUE if explored all neighborhood without success
   modeloActual<-Adjust3nn(dataset,getFeatures(selected,dataset)) 
   bestmodel<-0
-  
   if(nrow(training)<nrow(test)){ #done because train and test dataset's length should be the same for predict and postResample in caret
     test<-test[-nrow(test),]
     pred<-predict(modeloActual,test)
@@ -185,7 +185,8 @@ LocalSearchModified<-function(training,test,sIni){
     post<-postResample(pred,test$class)
   }
   AccuracyActual<-post[[1]]
-  
+  AccuracyInitial<-AccuracyActual
+  print(paste0("Accuracy  inicial de solucion:",AccuracyActual))
   while((!fin) && (nEval<15000)){
 #   while(!fin){
 #     if(nEval==10000){
@@ -230,7 +231,7 @@ LocalSearchModified<-function(training,test,sIni){
         break
     }
   }
-  return (list(bestmodel,selected,AccuracyActual))
+  return (list(bestmodel,selected,AccuracyActual,AccuracyInitial))
 }
 
 
@@ -273,7 +274,7 @@ modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   training=wdbcNormalized[indices,]
   test=wdbcNormalized[-indices,]
-  
+  print(paste0("PARTICION:",i))
   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
   list(SolucionmodeloBMB,time)
 })
