@@ -413,28 +413,25 @@ greedyRndm <- function(training,test,seed) {
     umbral<-cmejor-alpha*(cmejor-cpeor)#compute umbral
     
     LRC<-which(ganancias >= umbral)# get reduce list of candidates:gains in ganancias wich are over the umbral
-    set.seed(seed*(runif(1, min=1000, max=(78496327/seed)))+sum(LRC))
-    randomIndex<-sample(1:length(LRC),1,replace = FALSE)
-    randomFeature<-LRC[randomIndex]
+    set.seed(seed*(runif(1, min=1000, max=(78496327/seed)))+sum(LRC))#set random seed (as much random as possible) to get randomly a feature of LRC
+    randomIndex<-sample(1:length(LRC),1,replace = FALSE)#take one random index in LRC
+    randomFeature<-LRC[randomIndex]#get feature of LRC in that randomIndex position 
 
     modelo<-0
     evalua<-0
-#     
-#     for(i in seq_along(1:(ncol(dataset)-1))) {
-#    # sapply(seq_along(1:(ncol(dataset)-1)),  function(i){
-#       if(selected[i]!=1){
-         modelo=Adjust3nn((caracteristicasYaSel+dataset[[randomFeature]]),dataset,dataset[[ncol(dataset)]])
+        #adjust knn with K=3 using features selected actually plus the one slected randomly from LRC 
+         modelo=Adjust3nn(dataset,(caracteristicasYaSel+dataset[[randomFeature]]))
          if(nrow(training)<nrow(test)){
-           pred<-predict(modelo,test[-nrow(test),])
-           post<-postResample(pred,test[-nrow(test),ncol(dataset)])
-           evalua<-post
+           test<-test[-nrow(test),]
+           pred<-predict(modelo,test)
+           post<-postResample(pred,test$class)
          }else{
            pred<-predict(modelo,test)
-           post<-postResample(pred,test[[ncol(dataset)]])
-           evalua<-post
+           post<-postResample(pred,test$class)
          }
+         evalua<-post[[1]]
          
-    if(evalua[[1]]>bestAccu){
+    if(evalua>bestAccu){
         selected[randomFeature]=1
         featuresList[randomFeature]<-0
         caracteristicasYaSel<-caracteristicasYaSel+dataset[[randomFeature]]
