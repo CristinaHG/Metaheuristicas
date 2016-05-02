@@ -403,18 +403,16 @@ greedyRndm <- function(training,test,seed) {
           0
         }
     })
-  #  stopCluster(cl)
     
-    cmejor<-max(ganancias)
-    if (min(ganancias)==0){
+    cmejor<-max(ganancias)#compute cmejor
+    if (min(ganancias)==0){#compute cpeor. If some gains in ganancias vector are 0,they're ignored and next is taken
       cpeor<-min(ganancias[-which(ganancias==0.00)])
     }else{
       cpeor<-min(ganancias)
     }
-    umbral<-cmejor-alpha*(cmejor-cpeor)
-    # cmejor<-which.max(ganancias)
+    umbral<-cmejor-alpha*(cmejor-cpeor)#compute umbral
     
-    LRC<-which(ganancias >= umbral)# reduce list of candidates
+    LRC<-which(ganancias >= umbral)# get reduce list of candidates:gains in ganancias wich are over the umbral
     set.seed(seed*(runif(1, min=1000, max=(78496327/seed)))+sum(LRC))
     randomIndex<-sample(1:length(LRC),1,replace = FALSE)
     randomFeature<-LRC[randomIndex]
