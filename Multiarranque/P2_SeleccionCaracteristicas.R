@@ -410,7 +410,7 @@ greedyRndm <- function(training,test,seed) {
     }else{
       cpeor<-min(ganancias)
     }
-    umbral<-cmejor-alpha*(cmejor-cpeor)#compute umbral
+    umbral<-cmejor-(alpha*(cmejor-cpeor))#compute umbral
     
     LRC<-which(ganancias >= umbral)# get reduce list of candidates:gains in ganancias wich are over the umbral
     set.seed(seed*(runif(1, min=1000, max=(78496327/seed)))+sum(LRC))#set random seed (as much random as possible) to get randomly a feature of LRC
@@ -431,12 +431,12 @@ greedyRndm <- function(training,test,seed) {
          }
          evalua<-post[[1]]
          
-    if(evalua>bestAccu){
-        selected[randomFeature]=1
-        featuresList[randomFeature]<-0
-        caracteristicasYaSel<-caracteristicasYaSel+dataset[[randomFeature]]
-        bestAccu<-evalua[[1]]
-        bestmodel<-modelo
+    if(evalua>bestAccu){#if now accuracy is better that the actual best
+        selected[randomFeature]=1#that feature is selected
+        featuresList[randomFeature]<-0#cannot be taken from featuresList again
+        caracteristicasYaSel<-caracteristicasYaSel+dataset[[randomFeature]]#add feature to features selected sum value
+        bestAccu<-evalua#update best accuracy
+        bestmodel<-modelo#update bestmodel
     }else{
         print(paste0("final classification accuracy:",bestAccu ))
         final=TRUE
