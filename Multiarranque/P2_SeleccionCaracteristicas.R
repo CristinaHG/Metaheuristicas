@@ -380,30 +380,26 @@ greedyRndm <- function(training,test,seed) {
   featuresList<-as.vector(seq_along(1:(ncol(dataset)-1))) #list which constains indexes that goes from 1 to dataset features
   
   
-  while(sum(featuresList)!=0) {
+  while((sum(featuresList)!=0) && !(final)) {
     
-    if (final==TRUE){
-      break
-    }
-#       library(parallel)
-#       no_cores <- detectCores() - 1
-#       cl <- makeCluster(no_cores,type="FORK")
-      
-      #ganancias<-parSapply(cl,seq_along(1:(length(featuresList))),function(i){
+#     if (final==TRUE){
+#       break
+#     }
+
       ganancias<-sapply(seq_along(1:(length(featuresList))),function(i){
-        if(featuresList[i]!=0){
-            modelo=Adjust3nn(dataset[[featuresList[i]]],dataset,dataset[[ncol(dataset)]])
+        if(featuresList[i]!=0){# featuresList[i] is set to 0 when feature is taken. So here checks is has not been taken
+            modelo=Adjust3nn(dataset,dataset[[featuresList[i]]]) #adjust3nn with that feature
             if(nrow(training)<nrow(test)){
-              pred<-predict(modelo,test[-nrow(test),])
-              post<-postResample(pred,test[-nrow(test),ncol(dataset)])
-              evalua<-post
+              test<-test[-nrow(test),]#quit last row from test to have same lenght for training and test datasets.That's because caret does not good job if lenghts differ
+              pred<-predict(modelo,test)
+              post<-postResample(pred,test$class)
             }else{
               pred<-predict(modelo,test)
-              post<-postResample(pred,test[[ncol(dataset)]])
-              evalua<-post
+              post<-postResample(pred,test$class)
             }
-            evalua[[1]]
-        }else{
+            evalua<-post[[1]]
+            evalua
+        }else{ #else,gain associated is 0 
           0
         }
     })
