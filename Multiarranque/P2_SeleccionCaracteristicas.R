@@ -347,7 +347,7 @@ modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
   #a<-partitionDistribution(training,test)
   test<-test[-(nrow(test)-1),]
   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
-  l<-list(SolucionmodeloBMB,time)
+  list(SolucionmodeloBMB,time)
 })
 
 ReductionWDBC_BMB_SinInter_Arr<-lapply(seq_along(1:5),function(i){
@@ -364,19 +364,20 @@ ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
 #ramdommized greedy algorithm
 greedyRndm <- function(training,test,seed) { 
   dataset<-training
-  selected<-as.vector(rep(0,ncol(dataset)-1))
-  caracteristicasYaSel<-0
-  bestAccu<-0
-  bestmodel<-0
-  final<-FALSE
-  LRC<-0
+  selected<-as.vector(rep(0,ncol(dataset)-1)) #initially no features are selected
+  caracteristicasYaSel<-0 #variable where features sum is accumulated
+  bestAccu<-0 #initially,best accuracy is zero
+  bestmodel<-0 #initially,there's no best model
+  final<-FALSE #initially final is false
+  LRC<-0 #List of reduced candidates. Initially empty
   cmejor<-0
   cpeor<-0
   umbral<-0
   alpha<-0.3
-  ganancias<-0
-  randomFeature<-0
-  featuresList<-as.vector(seq_along(1:(ncol(dataset)-1)))
+  ganancias<-0 #matrix where accuracy gain of each feature is stored.Initially 0
+  randomIndex<-0#random index generated
+  randomFeature<-0#random feature that corresponds to ramdomIndex position in LRC
+  featuresList<-as.vector(seq_along(1:(ncol(dataset)-1))) #list which constains indexes that goes from 1 to dataset features
   
   
   while(sum(featuresList)!=0) {
