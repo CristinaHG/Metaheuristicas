@@ -378,7 +378,7 @@ greedyRndm <- function(training,test,seed) {
   randomIndex<-0#random index generated
   randomFeature<-0#random feature that corresponds to ramdomIndex position in LRC
   featuresList<-as.vector(seq_along(1:(ncol(dataset)-1))) #list which constains indexes that goes from 1 to dataset features
-  accuracyInitial<-0
+  evalua<-0
   
   while((sum(featuresList)!=0) && !(final)) {
     
@@ -417,8 +417,7 @@ greedyRndm <- function(training,test,seed) {
     set.seed(seed*(runif(1, min=1000, max=(78496327/seed)))+sum(LRC))#set random seed (as much random as possible) to get randomly a feature of LRC
     randomIndex<-sample(1:length(LRC),1,replace = FALSE)#take one random index in LRC
     randomFeature<-LRC[randomIndex]#get feature of LRC in that randomIndex position (it is really the index if true feature in taininng dataset)
-    accuracyInitial<-ganancias[randomFeature]
-    #print(paste0("initial accuracy:",ganancias[randomFeature] ))
+    
     modelo<-0
     evalua<-0
         #adjust knn with K=3 using features selected actually plus the one slected randomly from LRC 
@@ -444,7 +443,7 @@ greedyRndm <- function(training,test,seed) {
         final=TRUE
       }
     }
-  return (list(bestmodel,selected,bestAccu, accuracyInitial))
+  return (list(bestmodel,selected,bestAccu))
 } 
 
 
