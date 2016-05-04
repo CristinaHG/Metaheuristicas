@@ -364,7 +364,7 @@ ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
 #ramdommized greedy algorithm
 greedyRndm <- function(training,test,seed) { 
   dataset<-training
-  selected<-as.vector(rep(0,ncol(dataset)-1)) #initially no features are selected
+  selected<-as.vector(rep(0,ncol(dataset)-1)) #initially no features are selected(all 0)
   caracteristicasYaSel<-0 #variable where features sum is accumulated
   bestAccu<-0 #initially,best accuracy is zero
   bestmodel<-0 #initially,there's no best model
@@ -398,10 +398,11 @@ greedyRndm <- function(training,test,seed) {
               post<-postResample(pred,test$class)
             }
             evalua<-post[[1]]
-            evalua
+            
         }else{ #else,gain associated is 0 
-          0
+          evalua<-0
         }
+        evalua
     })
     
     cmejor<-max(ganancias)#compute cmejor
