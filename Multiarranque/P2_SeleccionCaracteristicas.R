@@ -448,37 +448,38 @@ greedyRndm <- function(training,test,seed) {
 
 
 GRASP<-function(training,test,numSol){
-  BestAccuracyGlobal<-0
-  bestIndex<-0
+  BestAccuracyGlobal<-0 #is the best accracy of all solutions.initially 0
+  bestIndex<-0#this is the index of model which accuracy is the best
   dataset<-training
-  library(parallel)
+  
+  library(parallel)#do pararelly:
   no_cores <- detectCores() - 1
   cl <- makeCluster(no_cores,type="FORK")
   
-  GreedySolutions<-parSapply(cl,seq_along(1:numSol),function(i){
+  GreedySolutions<-parSapply(cl,seq_along(1:numSol),function(i){#compute as much greedysolutions as specified
     set.seed(i)
-     i.seed<-(i*floor(runif(1, min=700, max=2829)))
+     i.seed<-(i*floor(runif(1, min=700, max=2829)))#random seed to compute random greedy sol
 #     RNGkind("Mersenne-Twister")
 #     .Random.seed[-i*578923]
-    solution<-greedyRndm(training,test,i.seed)
+    solution<-greedyRndm(training,test,i.seed)#greedy solutions
     solution
 })
-  stopCluster(cl)
+  stopCluster(cl)#stop core cluster
   
-  library(parallel)
+  library(parallel)#do pararelly:
   no_cores <- detectCores() - 1
   cl <- makeCluster(no_cores,type="FORK")
-  ModelosBL <- parLapply(cl,seq_along(1:ncol(GreedySolutions)),  function(i){
-    vecina<-GreedySolutions[2,i][[1]]
-    modelo<-LocalSearchModified(training,test,vecina)
+  ModelosBL <- parLapply(cl,seq_along(1:ncol(GreedySolutions)),  function(i){#apply Local Search on each Greedy solution generated above
+    vecina<-GreedySolutions[2,i][[1]]#get greedy Solution
+    modelo<-LocalSearchModified(training,test,vecina)#apply Local Seach to that greedy sol 
     modelo
   }) 
-  stopCluster(cl)
+  stopCluster(cl)#stop cluster
   
-  for(i in seq_along(ModelosBL)){
-    if(ModelosBL[[i]][[3]][[1]]>BestAccuracyGlobal){
+  for(i in seq_along(ModelosBL)){#for each Local Search solution, now take the best
+    if(ModelosBL[[i]][[3]][[1]]>BestAccuracyGlobal){#check which has best accuracy and take them
       BestAccuracyGlobal<-ModelosBL[[i]][[3]][[1]]
-      bestIndex<-i
+      bestIndex<-i#best solution index in Solution's array
     }
   }
   return(ModelosBL[[bestIndex]])
@@ -486,9 +487,9 @@ GRASP<-function(training,test,numSol){
 
 
 set.seed(123456)
-indices<-createDataPartition(wdbcNormalized$wdbc.class, p =.50, list = FALSE)
+indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
    training=wdbcNormalized[indices,]
    test=wdbcNormalized[-indices,]
-graspPrueba<-GRASP(training,test,25)
+graspPrueba<-GRASP(training,test,5)
 
 
