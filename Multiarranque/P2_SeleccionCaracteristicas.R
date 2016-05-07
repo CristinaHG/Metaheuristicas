@@ -63,21 +63,21 @@ Adjust3nn<-function(formula,training_data){
 # 
 
 
-#function that adjust KNN with K=3 using all as response
+#function that adjust KNN with K=3 using all features as predictors 
 model <- function(z,test) { 
   evalua<-0
   set.seed(12345)
   modelo<-train(class ~.,data=z,method="knn", tuneGrid=expand.grid(.k=3))
-  if(nrow(z)<nrow(test)){
-    test<-test[-nrow(test),]
+#   if(nrow(z)<nrow(test)){
+#     test<-test[-nrow(test),]
     pred<-predict(modelo,test)
     post<-postResample(pred,test$class)
     evalua<-post
-  }else{
-    pred<-predict(modelo,test)
-    post<-postResample(pred,test$class)
-    evalua<-post
-  }
+ # }else{
+#     pred<-predict(modelo,test)
+#     post<-postResample(pred,test$class)
+#     evalua<-post
+#   }
   return(evalua)
 }
 
@@ -88,8 +88,7 @@ getFeaturesForm<-function(selected,dataset){
   featuresList<-lapply(seq_along(selected), function(i) { #get list with names of features selected in bit mask
     if (selected[[i]]==1){
       names[[i]]
-    }
-  }) 
+    }}) 
   #construct formula. Predictors are fetureList elements which are not null,separated by +
   my.formula <- paste( 'class', '~', paste(Filter(Negate(is.null), featuresList), collapse=' + ' ))
   myf<-as.formula(my.formula)#create formula and return 
@@ -124,7 +123,6 @@ TestvsTrain3nn <- sapply(seq_along(1:5),  function(i){
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   test=wdbcNormalized[indices,]
   training=wdbcNormalized[-indices,]
-  #test<-test[-(nrow(test)-1),]
   time<-system.time(solution<-model(training,test))
   list(solution,time)
 })
@@ -187,42 +185,30 @@ LocalSearchModified<-function(training,test,sIni){
   vecina<-0
   AccuracyInitial<-0 #initial accuracy of the solution 
   fin<-FALSE #gets TRUE if explored all neighborhood without success
-  modeloActual<-Adjust3nn(dataset,getFeatures(selected,dataset)) 
+  modeloActual<-Adjust3nn(getFeaturesForm(selected,dataset),dataset)
   bestmodel<-0
-  if(nrow(training)<nrow(test)){ #done because train and test dataset's length should be the same for predict and postResample in caret
-    test<-test[-nrow(test),]
-    pred<-predict(modeloActual,test)
-    post<-postResample(pred,test$class)
-  }else{#length are the same so predict without removing any row
-    pred<-predict(modeloActual,test)
-    post<-postResample(pred,test$class)
-  }
+  
+  pred<-predict(modeloActual,test)
+  post<-postResample(pred,test$class)
+
   AccuracyActual<-post[[1]]
   AccuracyInitial<-AccuracyActual
-  print(paste0("Accuracy  inicial de solucion:",AccuracyActual))
+  #print(paste0("Accuracy  inicial de solucion:",AccuracyActual))
+  
   while((!fin) && (nEval<15000)){
-#   while(!fin){
-#     if(nEval==10000){
-#       break
-#     }
     bestSolFound=FALSE
     #for( i in seq_along(selected) && (!bestSolFound)){
     for( i in seq_along(selected)){
       if(!bestSolFound){
         vecina<-flip(selected,i)
         if(sum(vecina)!=0){ #comprobation because train dont let adjust a model with no features. If features selected sum 0 => acuracy=0 
-          modeloActual<-Adjust3nn(dataset,getFeatures(vecina,dataset))
-        if(nrow(training)<nrow(test)){
-          test<-test[-nrow(test),]
+          modeloActual<-Adjust3nn(getFeaturesForm(vecina,dataset),dataset)
+   
           pred<-predict(modeloActual,test)
           post<-postResample(pred,test$class)
           evaluaVecina<-post[[1]]
-        }else{ #doing predict and post resample as ever
-          pred<-predict(modeloActual,test)
-          post<-postResample(pred,test$class)
-          evaluaVecina<-post[[1]]
-        }
-        nEval<-nEval+1 #number of evaluated solutions increments
+          
+          nEval<-nEval+1 #number of evaluated solutions increments
         }else{
           evaluaVecina<-0
           nEval<-nEval+1
