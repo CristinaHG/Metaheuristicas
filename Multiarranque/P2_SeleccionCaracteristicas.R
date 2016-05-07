@@ -366,6 +366,7 @@ greedyRndm <- function(training,test,seed) {
   dataset<-training
   selected<-as.vector(rep(0,ncol(dataset)-1)) #initially no features are selected(all 0)
   caracteristicasYaSel<-0 #variable where features sum is accumulated
+  selectedAndCandidate<-as.vector(rep(0,ncol(dataset)-1))
   bestAccu<-0 #initially,best accuracy is zero
   bestmodel<-0 #initially,there's no best model
   final<-FALSE #initially final is false
@@ -382,22 +383,15 @@ greedyRndm <- function(training,test,seed) {
   
   while((sum(featuresList)!=0) && !(final)) {
     
-#     if (final==TRUE){
-#       break
-#     }
-
-      ganancias<-sapply(seq_along(1:(length(featuresList))),function(i){
+      ganancias<-sapply(seq_along(1:(length(featuresList))),function(i){#compute gain of each feature 
         if(featuresList[i]!=0){# featuresList[i] is set to 0 when feature is taken. So here checks is has not been taken
-            modelo=Adjust3nn(dataset,dataset[[featuresList[i]]]) #adjust3nn with that feature
-            if(nrow(training)<nrow(test)){
-              test<-test[-nrow(test),]#quit last row from test to have same lenght for training and test datasets.That's because caret does not good job if lenghts differ
-              pred<-predict(modelo,test)
-              post<-postResample(pred,test$class)
-            }else{
-              pred<-predict(modelo,test)
-              post<-postResample(pred,test$class)
-            }
-            evalua<-post[[1]]
+          sol<-as.vector(rep(0,ncol(dataset)-1))
+          sol[i]<-1
+          modelo=Adjust3nn(getFeaturesForm(sol,dataset),dataset) #adjust3nn with that feature
+          pred<-predict(modelo,test)
+          post<-postResample(pred,test$class)
+           
+          evalua<-post[[1]]
             
         }else{ #else,gain associated is 0 
           evalua<-0
@@ -421,27 +415,24 @@ greedyRndm <- function(training,test,seed) {
     modelo<-0
     evalua<-0
         #adjust knn with K=3 using features selected actually plus the one slected randomly from LRC 
-         modelo=Adjust3nn(dataset,(caracteristicasYaSel+dataset[[randomFeature]]))
-         if(nrow(training)<nrow(test)){
-           test<-test[-nrow(test),]
-           pred<-predict(modelo,test)
-           post<-postResample(pred,test$class)
-         }else{
-           pred<-predict(modelo,test)
-           post<-postResample(pred,test$class)
-         }
-         evalua<-post[[1]]
+        selectedAndCandidate[[randomFeature]]<-1
+        modelo=Adjust3nn(getFeaturesForm(selectedAndCandidate,dataset),dataset)#adjust model with features selected+ new feature
+        pred<-predict(modelo,test)
+        post<-postResample(pred,test$class) #compute test accuracy
+        evalua<-post[[1]]
          
     if(evalua>bestAccu){#if now accuracy is better that the actual best
-        selected[randomFeature]=1#that feature is selected
+        #selected[randomFeature]=1#that feature is selected
+        selected<-selectedAndCandidate
         featuresList[randomFeature]<-0#cannot be taken from featuresList again
-        caracteristicasYaSel<-caracteristicasYaSel+dataset[[randomFeature]]#add feature to features selected sum value
+        #caracteristicasYaSel<-caracteristicasYaSel+dataset[[randomFeature]]#add feature to features selected sum value
         bestAccu<-evalua#update best accuracy
         bestmodel<-modelo#update bestmodel
     }else{
         print(paste0("final classification accuracy:",bestAccu ))
         final=TRUE
-      }
+    }
+        selectedAndCandidate<-selected  
     }
   return (list(bestmodel,selected,bestAccu))
 } 
