@@ -67,7 +67,7 @@ Adjust3nn<-function(formula,training_data){
 model <- function(z,test) { 
   evalua<-0
   set.seed(12345)
-  modelo<-train(z$class ~.,data=z,method="knn", tuneGrid=expand.grid(.k=3))
+  modelo<-train(class ~.,data=z,method="knn", tuneGrid=expand.grid(.k=3))
   if(nrow(z)<nrow(test)){
     test<-test[-nrow(test),]
     pred<-predict(modelo,test)
