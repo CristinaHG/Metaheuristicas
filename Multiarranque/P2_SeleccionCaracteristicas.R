@@ -196,8 +196,8 @@ LocalSearchModified<-function(training,test,sIni){
   #print(paste0("Accuracy  inicial de solucion:",AccuracyActual))
   
   while((!fin) && (nEval<15000)){
+    
     bestSolFound=FALSE
-    #for( i in seq_along(selected) && (!bestSolFound)){
     for( i in seq_along(selected)){
       if(!bestSolFound){
         vecina<-flip(selected,i)
@@ -222,12 +222,14 @@ LocalSearchModified<-function(training,test,sIni){
         }
         if(i==nfeatures){
           fin<-TRUE
+          break
         }
       }else{
         break
       }
-      if(nEval>=15000) 
+      if(nEval>=15000){ 
         break
+      }
     }
   }
   return (list(bestmodel,selected,AccuracyActual,AccuracyInitial))
