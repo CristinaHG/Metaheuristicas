@@ -427,7 +427,7 @@ greedyRndm <- function(training,test,seed) {
         bestAccu<-evalua#update best accuracy
         bestmodel<-modelo#update bestmodel
     }else{
-        final=TRUE
+        final=TRUE #feature added dont improve actual sol
     }
         selectedAndCandidate<-selected  #in any case,selectedAndcandidate is selected ntil feature added
     }
