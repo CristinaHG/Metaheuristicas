@@ -51,10 +51,23 @@ library(caret)
 #function used to adjust 3nn: receive predictors as param
 Adjust3nn<-function(y,x){
   set.seed(12345)
-  modelo<-train(y$class ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
+  modelo<-train(class ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
   return(modelo)
 }
+# set.seed(12345)
+# t<-train(class~training$RealValuedInputFeature_2+training$RealValuedInputFeature_3+training$RealValuedInputFeature_5+training$RealValuedInputFeature_6+training$RealValuedInputFeature_7+training$RealValuedInputFeature_8+training$RealValuedInputFeature_10+training$RealValuedInputFeature_11+training$RealValuedInputFeature_13+training$RealValuedInputFeature_15+training$RealValuedInputFeature_16+training$RealValuedInputFeature_17+training$RealValuedInputFeature_18+training$RealValuedInputFeature_20+training$RealValuedInputFeature_22+training$RealValuedInputFeature_24+training$RealValuedInputFeature_26,data=training, method="knn",tuneGrid=expand.grid(.k=3))
+# set.seed(12345)
+# t1<-train(class~RealValuedInputFeature_2+RealValuedInputFeature_3+RealValuedInputFeature_5+RealValuedInputFeature_6+RealValuedInputFeature_7+
+#             RealValuedInputFeature_8+RealValuedInputFeature_10+RealValuedInputFeature_11+RealValuedInputFeature_13+RealValuedInputFeature_15+RealValuedInputFeature_16+RealValuedInputFeature_17+RealValuedInputFeature_18+RealValuedInputFeature_20+
+#             RealValuedInputFeature_22+RealValuedInputFeature_24+RealValuedInputFeature_26,data=training, method="knn",tuneGrid=expand.grid(.k=3))
+# 
+names<-(colnames(wdbcNormalized))
+predictors<-c(names[1],names[2])
+my.formula <- paste( 'class', '~', paste(predictors, collapse=' + ' ) )
+myf<-as.formula(my.formula)
 
+
+t<-train(myf,data=training, method="knn",tuneGrid=expand.grid(.k=3))
 
 #function that adjust KNN with K=3 using all as response
 model <- function(z,test) { 
@@ -75,16 +88,20 @@ model <- function(z,test) {
 }
 
 
-#---------------------function that returns features of dataset that corresponds to selected ones in a binary vector
-getFeatures<-function(selected,dataset){
-  featuresList<-lapply(seq_along(selected), function(i) {
-    if (selected[[i]]==1) {
-      (dataset[[i]])}
+#---------------------function that returns formula using features of dataset that corresponds to selected ones in a binary vector
+getFeaturesForm<-function(selected,dataset){
+  names<-(colnames(dataset)) #get column names of dataset
+  featuresList<-lapply(seq_along(selected), function(i) { #get list with names of features selected in bit mask
+    if (selected[[i]]==1){
+      names[[i]]
+    }
   }) 
-  
-  features<-Reduce('+',Filter(Negate(is.null), featuresList))
-  return (features)
+  #construct formula. Predictors are fetureList elements which are not null,separated by +
+  my.formula <- paste( 'class', '~', paste(Filter(Negate(is.null), featuresList), collapse=' + ' ))
+  myf<-as.formula(my.formula)#create formula and return 
+  return (myf)
 }
+
 
 #-----------------------function that generates neightbour by fliping a given position------------------   
    flip<-function(selected,index){
@@ -454,7 +471,7 @@ GRASP<-function(training,test,numSol){
   dataset<-training
   
   library(parallel)#do pararelly:
-  no_cores <- detectCores() - 1
+  no_cores <- detectCores()-1
   cl <- makeCluster(no_cores,type="FORK")
   
   GreedySolutions<-parSapply(cl,seq_along(1:numSol),function(i){#compute as much greedysolutions as specified
@@ -468,7 +485,7 @@ GRASP<-function(training,test,numSol){
   stopCluster(cl)#stop core cluster
   
   library(parallel)#do pararelly:
-  no_cores <- detectCores() - 1
+  no_cores <- detectCores()-1
   cl <- makeCluster(no_cores,type="FORK")
   ModelosBL <- parLapply(cl,seq_along(1:(ncol(GreedySolutions))),  function(i){#apply Local Search on each Greedy solution generated above
     vecina<-as.integer(GreedySolutions[2,i][[1]])#get greedy Solution
@@ -490,30 +507,30 @@ GRASP<-function(training,test,numSol){
 #----------------GRASP executions-------------------------------------------
 #----------------------------------for wdbc---------------------------------------
 
-modelosTrainvstestBMB <- sapply(seq_along(1:5),  function(i){
+modelosTrainvstestGRASP <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   training=wdbcNormalized[indices,]
   test=wdbcNormalized[-indices,]
-  time<-system.time(SolucionmodeloBMB<-GRASP(training,test,25))
-  list(SolucionmodeloBMB,time)
+  time<-system.time(SolucionmodeloGRASP<-GRASP(training,test,25))
+  list(SolucionmodeloGRASP,time)
 })
 
-modelosTestvsTrainBMB <- sapply(seq_along(1:5),  function(i){
+modelosTestvsTrainGRASP <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   test=wdbcNormalized[indices,]
   training=wdbcNormalized[-indices,]
   
-  time<-system.time(SolucionmodeloBMB<-GRASP(training,test,25))
-  list(SolucionmodeloBMB,time)
+  time<-system.time(SolucionmodeloGRASP<-GRASP(training,test,25))
+  list(SolucionmodeloGRASP,time)
 })
 
-ReductionWDBC_BMB_SinInter<-lapply(seq_along(1:5),function(i){
-  100*((ncol(wdbcNormalized)-sum(modelosTrainvstestBMB[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+ReductionWDBC_GRASP_SinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstestGRASP[1,i][[1]][[2]]))/ncol(wdbcNormalized))
 })                  
 
-ReductionWDBC_BMB_Inter<-lapply(seq_along(1:5),function(i){
-  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainBMB[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+ReductionWDBC_GRASP_Inter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainGRASP[1,i][[1]][[2]]))/ncol(wdbcNormalized))
 })  
 
