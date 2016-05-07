@@ -49,9 +49,9 @@ partitionDistribution <- function(training,test) {
 library(caret)
 
 #function used to adjust 3nn: receive predictors as param
-Adjust3nn<-function(y,x){
+Adjust3nn<-function(formula,training_data){
   set.seed(12345)
-  modelo<-train(class ~x,data=y,method="knn",tuneGrid=expand.grid(.k=3))
+  modelo<-train(formula,data=training_data,method="knn",tuneGrid=expand.grid(.k=3))
   return(modelo)
 }
 # set.seed(12345)
@@ -61,13 +61,7 @@ Adjust3nn<-function(y,x){
 #             RealValuedInputFeature_8+RealValuedInputFeature_10+RealValuedInputFeature_11+RealValuedInputFeature_13+RealValuedInputFeature_15+RealValuedInputFeature_16+RealValuedInputFeature_17+RealValuedInputFeature_18+RealValuedInputFeature_20+
 #             RealValuedInputFeature_22+RealValuedInputFeature_24+RealValuedInputFeature_26,data=training, method="knn",tuneGrid=expand.grid(.k=3))
 # 
-names<-(colnames(wdbcNormalized))
-predictors<-c(names[1],names[2])
-my.formula <- paste( 'class', '~', paste(predictors, collapse=' + ' ) )
-myf<-as.formula(my.formula)
 
-
-t<-train(myf,data=training, method="knn",tuneGrid=expand.grid(.k=3))
 
 #function that adjust KNN with K=3 using all as response
 model <- function(z,test) { 
