@@ -365,8 +365,7 @@ ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
 greedyRndm <- function(training,test,seed) { 
   dataset<-training
   selected<-as.vector(rep(0,ncol(dataset)-1)) #initially no features are selected(all 0)
-  caracteristicasYaSel<-0 #variable where features sum is accumulated
-  selectedAndCandidate<-as.vector(rep(0,ncol(dataset)-1))
+  selectedAndCandidate<-as.vector(rep(0,ncol(dataset)-1))#where selected+feature randomly selected is stored. initially vectorof 0
   bestAccu<-0 #initially,best accuracy is zero
   bestmodel<-0 #initially,there's no best model
   final<-FALSE #initially final is false
@@ -379,9 +378,9 @@ greedyRndm <- function(training,test,seed) {
   randomIndex<-0#random index generated
   randomFeature<-0#random feature that corresponds to ramdomIndex position in LRC
   featuresList<-as.vector(seq_along(1:(ncol(dataset)-1))) #list which constains indexes that goes from 1 to dataset features
-  evalua<-0
+  evalua<-0#var where test accu is stored.initially 0
   
-  while((sum(featuresList)!=0) && !(final)) {
+  while((sum(featuresList)!=0) && !(final)) { #while features List is not NULL and final is false
     
       ganancias<-sapply(seq_along(1:(length(featuresList))),function(i){#compute gain of each feature 
         if(featuresList[i]!=0){# featuresList[i] is set to 0 when feature is taken. So here checks is has not been taken
@@ -390,8 +389,7 @@ greedyRndm <- function(training,test,seed) {
           modelo=Adjust3nn(getFeaturesForm(sol,dataset),dataset) #adjust3nn with that feature
           pred<-predict(modelo,test)
           post<-postResample(pred,test$class)
-           
-          evalua<-post[[1]]
+          evalua<-post[[1]]#get test accuracy
             
         }else{ #else,gain associated is 0 
           evalua<-0
@@ -421,7 +419,7 @@ greedyRndm <- function(training,test,seed) {
         post<-postResample(pred,test$class) #compute test accuracy
         evalua<-post[[1]]
          
-    if(evalua>bestAccu){#if now accuracy is better that the actual best
+    if(evalua>bestAccu){ #if now accuracy is better that the actual best
         #selected[randomFeature]=1#that feature is selected
         selected<-selectedAndCandidate
         featuresList[randomFeature]<-0#cannot be taken from featuresList again
@@ -429,10 +427,9 @@ greedyRndm <- function(training,test,seed) {
         bestAccu<-evalua#update best accuracy
         bestmodel<-modelo#update bestmodel
     }else{
-        print(paste0("final classification accuracy:",bestAccu ))
         final=TRUE
     }
-        selectedAndCandidate<-selected  
+        selectedAndCandidate<-selected  #in any case,selectedAndcandidate is selected ntil feature added
     }
   return (list(bestmodel,selected,bestAccu))
 } 
