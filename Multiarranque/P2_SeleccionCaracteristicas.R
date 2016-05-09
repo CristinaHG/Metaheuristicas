@@ -359,9 +359,9 @@ ReductionWDBC_BMB_Inter_Libras<-lapply(seq_along(1:5),function(i){
 })  
 
 
-#-------------------------GRASP-----------------------------
+#-------------------------GRASP---------------------------------
 
-#ramdommized greedy algorithm
+#--------------------ramdommized greedy algorithm---------------
 greedyRndm <- function(training,test,seed) { 
   dataset<-training
   selected<-as.vector(rep(0,ncol(dataset)-1)) #initially no features are selected(all 0)
@@ -382,8 +382,9 @@ greedyRndm <- function(training,test,seed) {
   
   while((sum(featuresList)!=0) && !(final)) { #while features List is not NULL and final is false
     
-      ganancias<-sapply(seq_along(1:(length(featuresList))),function(i){#compute gain of each feature 
-        if(featuresList[i]!=0){# featuresList[i] is set to 0 when feature is taken. So here checks is has not been taken
+      ganancias<-sapply(seq_along(1:(length(featuresList))),function(i){ #compute gain of each feature 
+        
+        if(featuresList[i]!=0){ # featuresList[i] is set to 0 when feature is taken. So here checks is has not been taken
           sol<-as.vector(rep(0,ncol(dataset)-1))
           sol[i]<-1
           modelo=Adjust3nn(getFeaturesForm(sol,dataset),dataset) #adjust3nn with that feature
@@ -420,54 +421,52 @@ greedyRndm <- function(training,test,seed) {
         evalua<-post[[1]]
          
     if(evalua>bestAccu){ #if now accuracy is better that the actual best
-        #selected[randomFeature]=1#that feature is selected
         selected<-selectedAndCandidate
-        featuresList[randomFeature]<-0#cannot be taken from featuresList again
-        #caracteristicasYaSel<-caracteristicasYaSel+dataset[[randomFeature]]#add feature to features selected sum value
+        featuresList[randomFeature]<-0#feature selected. Cannot be taken from featuresList again
         bestAccu<-evalua#update best accuracy
         bestmodel<-modelo#update bestmodel
     }else{
         final=TRUE #feature added dont improve actual sol
     }
-        selectedAndCandidate<-selected  #in any case,selectedAndcandidate is selected ntil feature added
+        selectedAndCandidate<-selected  #in any case,selectedAndcandidate is selected until feature added
     }
   return (list(bestmodel,selected,bestAccu))
 } 
 
 
+#---------------------GRASP ALGORITHM---------------
+
 GRASP<-function(training,test,numSol){
   BestAccuracyGlobal<-0 #is the best accracy of all solutions.initially 0
-  bestIndex<-0#this is the index of model which accuracy is the best
-  dataset<-training
+  bestIndex<-0 #this is the index of model in model's list ,which accuracy is the best
   
   library(parallel)#do pararelly:
-  no_cores <- detectCores()-1
+  no_cores <- detectCores()
   cl <- makeCluster(no_cores,type="FORK")
   
   GreedySolutions<-parSapply(cl,seq_along(1:numSol),function(i){#compute as much greedysolutions as specified
     set.seed(i)
-     i.seed<-(i*floor(runif(1, min=700, max=2829)))#random seed to compute random greedy sol
-#     RNGkind("Mersenne-Twister")
-#     .Random.seed[-i*578923]
+    i.seed<-(i*floor(runif(1, min=700, max=2829)))#random seed to compute random greedy sol
     solution<-greedyRndm(training,test,i.seed)#greedy solutions
     solution
 })
   stopCluster(cl)#stop core cluster
   
   library(parallel)#do pararelly:
-  no_cores <- detectCores()-1
+  no_cores <- detectCores()
   cl <- makeCluster(no_cores,type="FORK")
-  ModelosBL <- parLapply(cl,seq_along(1:(ncol(GreedySolutions))),  function(i){#apply Local Search on each Greedy solution generated above
-    vecina<-as.integer(GreedySolutions[2,i][[1]])#get greedy Solution
+  
+  ModelosBL <- parLapply(cl,seq_along(1:(ncol(GreedySolutions))),  function(i){ #apply Local Search on each Greedy solution generated above
+    vecina<-GreedySolutions[2,i][[1]]#get greedy Solution
     modelo<-LocalSearchModified(training,test,vecina)#apply Local Seach to that greedy sol 
     modelo
   }) 
   stopCluster(cl)#stop cluster
   
-  for(i in seq_along(ModelosBL)){#for each Local Search solution, now take the best
-    if(ModelosBL[[i]][[3]][[1]]>BestAccuracyGlobal){#check which has best accuracy and take them
+  for(i in seq_along(ModelosBL)){ #for each solution obtained in Local Search, now take the best
+    if(ModelosBL[[i]][[3]][[1]]>BestAccuracyGlobal){ #check which has best accuracy and take them
       BestAccuracyGlobal<-ModelosBL[[i]][[3]][[1]]
-      bestIndex<-i#best solution index in Solution's array
+      bestIndex<-i #best solution index in Solution's array
     }
   }
   return(ModelosBL[[bestIndex]])
@@ -496,11 +495,70 @@ modelosTestvsTrainGRASP <- sapply(seq_along(1:5),  function(i){
   list(SolucionmodeloGRASP,time)
 })
 
-ReductionWDBC_GRASP_SinInter<-lapply(seq_along(1:5),function(i){
-  100*((ncol(wdbcNormalized)-sum(modelosTrainvstestGRASP[1,i][[1]][[2]]))/ncol(wdbcNormalized))
-})                  
+# ReductionWDBC_GRASP_SinInter<-lapply(seq_along(1:5),function(i){
+#   100*((ncol(wdbcNormalized)-sum(modelosTrainvstestGRASP[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+# })                  
 
 ReductionWDBC_GRASP_Inter<-lapply(seq_along(1:5),function(i){
   100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainGRASP[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})  
+
+#----------------------------------Para Movement Libras---------------------------------------
+
+modelosTrainvstestGRASP_Libras <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloGRASP<-GRASP(training,test,25))
+  list(SolucionmodeloGRASP,time)
+})
+
+modelosTestvsTrainGRASP_Libras <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloGRASP<-GRASP(training,test,25))
+  list(SolucionmodeloGRASP,time)
+})
+
+ReductionWDBC_GRASP_SinInter_Libras<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTrainvstestGRASP_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+})                  
+
+ReductionWDBC_GRASP_Inter_Libras<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTestvsTrainGRASP_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+})  
+
+#----------------------------------Para Arritmia--------------------------------------
+
+modelosTrainvstestGRASP_Arr <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloGRASP<-GRASP(training,test,25))
+  list(SolucionmodeloGRASP,time)
+})
+
+modelosTestvsTrainGRASP_Arr <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  time<-system.time(SolucionmodeloGRASP<-GRASP(training,test,25))
+  list(SolucionmodeloGRASP,time)
+})
+
+ReductionWDBC_GRASP_SinInter_Arr<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestGRASP_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})                  
+
+ReductionWDBC_GRASP_Inter_Libras<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainGRASP_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
 })  
 
