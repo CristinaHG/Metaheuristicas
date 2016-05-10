@@ -599,7 +599,7 @@ ILS<-function(training,test,i.seed){
 #----------------ILS executions-------------------------------------------
 #----------------------------------for wdbc---------------------------------------
 
-modelosTrainvstestGRASP <- sapply(seq_along(1:5),  function(i){
+modelosTrainvstestILS <- sapply(seq_along(1:5),  function(i){
   set.seed(i*9876543)
   indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
   training=wdbcNormalized[indices,]
@@ -607,4 +607,83 @@ modelosTrainvstestGRASP <- sapply(seq_along(1:5),  function(i){
   time<-system.time(SolucionmodeloILS<-ILS(training,test,i*234567))
   list(SolucionmodeloILS,time)
 })
+
+
+modelosTestvsTrainILS <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloILS<-ILS(training,test,i*234567))
+  list(SolucionmodeloILS,time)
+})
+
+ReductionWDBC_ILS_SinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstestILS[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})                  
+
+ReductionWDBC_ILS_Inter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrainILS[1,i][[1]][[2]]))/ncol(wdbcNormalized))
+})  
+
+#----------------------------------Para Movement Libras---------------------------------------
+
+modelosTrainvstestILS_Libras <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloILS<-ILS(training,test,i*234567))
+  list(SolucionmodeloILS,time)
+})
+
+modelosTestvsTrainILS_Libras <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloILS<-ILS(training,test,i*234567))
+  list(SolucionmodeloILS,time)
+})
+
+ReductionWDBC_ILS_SinInter_Libras<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTrainvstestILS_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+})                  
+
+ReductionWDBC_ILS_Inter_Libras<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTestvsTrainILS_Libras[1,i][[1]][[2]]))/ncol(LibrasNormalized))
+})  
+
+#----------------------------------Para Arritmia--------------------------------------
+
+modelosTrainvstestILS_Arr <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  
+  time<-system.time(SolucionmodeloILS<-ILS(training,test,i*234567))
+  list(SolucionmodeloILS,time)
+})
+
+modelosTestvsTrainILS_Arr <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  time<-system.time(SolucionmodeloILS<-ILS(training,test,i*234567))
+  list(SolucionmodeloILS,time)
+})
+
+ReductionWDBC_ILS_SinInter_Arr<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestILS_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})                  
+
+ReductionWDBC_ILS_Inter_Libras<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainILS_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
+})  
+
 
