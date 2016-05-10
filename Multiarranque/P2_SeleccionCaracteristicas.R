@@ -568,7 +568,36 @@ ILS<-function(training,test,i.seed){
   set.seed(i.seed) #set seed pass as paremeter. That avoid choosing same initial solution each time
   sIni<-sample(0:1,nfeatures,replace=TRUE) #initial solution
   sLSeach<-LocalSearchModified(training,test,sIni) #applying Local Search to initial solution
+  bestAtMoment<-0
+  bestAccu<-0
+  iter<-0
+  t<-0.1*ncol(training)#10% of the features
+  mutated<-0
+  modelo<-0
+  pred<-0
+  post<-0
+  Accuini<-sLSeach[[4]][[1]]
   
+  while(iter!=25){
+  if(sLSearch[[3]][[1]]>bestAccu){ #update best solution at moment to apply mutation to it
+    bestAtMoment<-sLSearch[[2]][[1]]
+    bestAccu<-sLSearch[[3]][[1]]
+  }
+  set.seed(iter*(runif(1, min=1000, max=(78496327/i.seed))))#set seed randomly 
+  randomIndex<-sample(1:ncol(training),t,replace = FALSE)  #get indexes of features to be changed, randomly
   
+  mutated<-bestAtMoment
   
+  for(i in randomIndex){ #change elements from mutated sol
+    flip(mutated,randomIndex[i])
+  }
+  sLSeach<-LocalSearchModified(training,test,mutated)#apply LocalSearch 
+  
+  if(sLSearch[[3]][[1]]>bestAccu){ #update best solution at moment to apply mutation to it
+    bestAtMoment<-sLSearch[[2]][[1]]
+    bestAccu<-sLSearch[[3]][[1]]
+  }
+  iter<-iter+1#increase number of iterations
+  }
+  return (list(bestAtMoment, bestAccu, Accuini))
 }
