@@ -567,6 +567,7 @@ ReductionWDBC_GRASP_Inter_Libras<-lapply(seq_along(1:5),function(i){
 ILS<-function(training,test,i.seed){
   set.seed(i.seed) #set seed pass as paremeter. That avoid choosing same initial solution each time
   sIni<-sample(0:1,nfeatures,replace=TRUE) #initial solution
+  sLSeach<-LocalSearchModified(training,test,sIni) #applying Local Search to initial solution
   
   
   
