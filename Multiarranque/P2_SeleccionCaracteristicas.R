@@ -237,7 +237,7 @@ BMB<-function(training,test){
  
   #generating 25 random solutions and optimizing each one by aplying Local Seach :done parallely
   library(parallel)
-  no_cores <- detectCores() - 1
+  no_cores <- detectCores()
   cl <- makeCluster(no_cores,type="FORK")
   ModelosBL <- parLapply(cl,seq_along(1:25),  function(i){
     set.seed(12345*i)
@@ -336,8 +336,6 @@ modelosTestvsTrainBMB_Arr <- sapply(seq_along(1:5),  function(i){
   indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
   test=AritmiaNormalized[indices,]
   training=AritmiaNormalized[-indices,]
-  #a<-partitionDistribution(training,test)
-  test<-test[-(nrow(test)-1),]
   time<-system.time(SolucionmodeloBMB<-BMB(training,test))
   list(SolucionmodeloBMB,time)
 })
