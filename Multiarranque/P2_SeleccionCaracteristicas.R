@@ -568,7 +568,7 @@ ILS<-function(training,test,i.seed){
   modelo<-0
   pred<-0
   post<-0
-  Accuini<-sLSeach[[4]][[1]]
+  Accuini<-sLSearch[[4]][[1]]
   
   while(iter!=25){
   if(sLSearch[[3]][[1]]>bestAccu){ #update best solution at moment to apply mutation to it
@@ -583,7 +583,7 @@ ILS<-function(training,test,i.seed){
   for(i in randomIndex){ #change elements from mutated sol
     flip(mutated,randomIndex[i])
   }
-  sLSeach<-LocalSearchModified(training,test,mutated)#apply LocalSearch 
+  sLSearch<-LocalSearchModified(training,test,mutated)#apply LocalSearch 
   
   if(sLSearch[[3]][[1]]>bestAccu){ #update best solution at moment to apply mutation to it
     bestAtMoment<-sLSearch[[2]][[1]]
