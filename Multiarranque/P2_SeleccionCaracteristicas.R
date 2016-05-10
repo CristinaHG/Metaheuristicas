@@ -566,7 +566,7 @@ ReductionWDBC_GRASP_Inter_Libras<-lapply(seq_along(1:5),function(i){
 #------------------------------ILS-----------------------------
 ILS<-function(training,test,i.seed){
   set.seed(i.seed) #set seed pass as paremeter. That avoid choosing same initial solution each time
-  sIni<-sample(0:1,nfeatures,replace=TRUE) #initial solution
+  sIni<-sample(0:1,ncol(training)-1,replace=TRUE) #initial solution
   sLSeach<-LocalSearchModified(training,test,sIni) #applying Local Search to initial solution
   bestAtMoment<-0
   bestAccu<-0
@@ -601,3 +601,16 @@ ILS<-function(training,test,i.seed){
   }
   return (list(bestAtMoment, bestAccu, Accuini))
 }
+
+#----------------ILS executions-------------------------------------------
+#----------------------------------for wdbc---------------------------------------
+
+modelosTrainvstestGRASP <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  time<-system.time(SolucionmodeloILS<-ILS(training,test,i*234567))
+  list(SolucionmodeloILS,time)
+})
+
