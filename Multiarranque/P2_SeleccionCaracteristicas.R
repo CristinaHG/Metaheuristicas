@@ -230,7 +230,7 @@ LocalSearchModified<-function(training,test,sIni){
 
 #-----------------BMB------------------   
 BMB<-function(training,test){
-  dataset=training
+ # dataset=training
   nfeatures<-ncol(training)-1
   bestIndex<-0 #index of best model in Model's array
   BestAccuracyGlobal<-0 #Best accuraccy in global
@@ -556,16 +556,14 @@ ReductionWDBC_GRASP_Inter_Libras<-lapply(seq_along(1:5),function(i){
 #------------------------------ILS-----------------------------
 ILS<-function(training,test,i.seed){
   set.seed(i.seed) #set seed pass as paremeter. That avoid choosing same initial solution each time
-  sIni<-sample(0:1,ncol(training)-1,replace=TRUE) #initial solution
+  nfeatures<-ncol(training)-1
+  sIni<-sample(0:1,nfeatures,replace=TRUE) #initial solution
   sLSearch<-LocalSearchModified(training,test,sIni) #applying Local Search to initial solution
   bestAtMoment<-0
   bestAccu<-0
   iter<-1
   t<-floor(0.1*ncol(training))#10% of the features
   mutated<-0
-  modelo<-0
-  pred<-0
-  post<-0
   Accuini<-sLSearch[[4]][[1]]
   
   if(sLSearch[[3]][[1]]>bestAccu){ #update best solution at moment to apply mutation to it
@@ -576,7 +574,7 @@ ILS<-function(training,test,i.seed){
   while(iter!=25){
   
   set.seed(iter*234567)#set seed randomly 
-  randomIndex<-sample(1:ncol(training),t,replace = FALSE)  #get indexes of features to be changed, randomly
+  randomIndex<-sample(1:nfeatures,t,replace = FALSE)  #get indexes of features to be changed, randomly
   
   mutated<-bestAtMoment
   
@@ -683,5 +681,59 @@ ReductionWDBC_ILS_SinInter_Arr<-lapply(seq_along(1:5),function(i){
 ReductionWDBC_ILS_Inter_Libras<-lapply(seq_along(1:5),function(i){
   100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainILS_Arr[1,i][[1]][[2]]))/ncol(AritmiaNormalized))
 })  
+
+
+#----------------------------------data visualizations-----------------------------------
+library(ggplot2)
+#---------------------------------------------BOXPLOTS-----------------------------------
+#----------------BMB for WDBC---------------
+data.frame1<-data.frame(a=1:5,b=c(0.971831,0.9577465,0.971831,0.9577465,0.9507042,0.9649123,0.9649123,0.9473684,0.9508772,0.9649123))
+data.frame2<-data.frame(a=1:5,b=c(0.9894366,0.9788732,0.9894366,0.9753521,0.9823944,0.9789474,0.9859649,0.9859649,0.9929825,0.9859649))
+
+ggplot(data.frame1,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="blue"),data=data.frame2)+theme(legend.position = "none")
+#----------------BMB for MOVEMENT LIBRAS--------
+data.frame1ML_BMB<-data.frame(a=1:5,b=c(0.6777778,0.6833333,0.7277778,0.6944444,0.6777778,0.7333333,0.7111111,0.7111111,0.7222222,0.7444444))
+data.frame2ML_BMB<-data.frame(a=1:5,b=c(0.7555556,0.7277778,0.75,0.7666667,0.7611111,0.7777778,0.7888889,0.7611111,0.7888889,0.7888889))
+
+ML_BMB<-ggplot(data.frame1ML_BMB,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="green"),data=data.frame2ML_BMB)+theme(legend.position = "none")
+#---------------BMB for ARRITMIA-------------
+data.frame1ARR_BMB<-data.frame(a=1:5,b=c(0.6354167,0.625,0.6510417, 0.6510417, 0.65625,0.6391753,0.6443299,0.6082474,0.6494845,0.6082474))
+data.frame2ARR_BMB<-data.frame(a=1:5,b=c(0.7395833,0.6822917,0.7395833,0.75,0.7083333,0.7268041,0.7164948, 0.7010309, 0.7010309,0.742268))
+
+ARR_BMB<-ggplot(data.frame1ARR_BMB,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="green"),data=data.frame2ARR_BMB)+theme(legend.position = "none")
+
+
+#----------------GRASP for WDBC---------------
+data.frame1GRASP_WDBC<-data.frame(a=1:5,b=c(0.9471831,0.9366197,0.9542254,0.9366197,0.9225352,0.8947368,0.9157895,0.9052632,0.9578947,0.922807))
+data.frame2GRASP_WDBC<-data.frame(a=1:5,b=c(0.9894366,0.9788732,0.9894366,0.971831,0.9823944,0.9824561,0.9824561,0.9824561,0.9894737, 0.9789474))
+
+GRASP_WDBC<-ggplot(data.frame1GRASP_WDBC,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="blue"),data=data.frame2GRASP_WDBC)+theme(legend.position = "none")
+#----------------GRASP for MOVEMENT LIBRAS--------
+data.frame1ML_GRASP<-data.frame(a=1:5,b=c(0.55,0.6666667,0.3277778,0.4666667,0.5666667, 0.6777778,0.2777778,0.5944444,0.5055556,0.5333333))
+data.frame2ML_GRASP<-data.frame(a=1:5,b=c(0.7555556,0.7722222,0.7888889,0.7944444,0.7833333,0.7944444,0.8,0.7944444,0.8166667,0.8333333))
+
+ML_GRASP<-ggplot(data.frame1ML_GRASP,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="blue"),data=data.frame2ML_GRASP)+theme(legend.position = "none")
+#---------------GRASP for ARRITMIA-------------
+data.frame1ARR_GRASP<-data.frame(a=1:5,b=c(0.6354167,0.640625,0.6614583,0.6354167,0.65625,0.6340206,0.6494845,0.6701031,0.6340206,0.6340206))
+data.frame2ARR_GRASP<-data.frame(a=1:5,b=c(0.8489583, 0.7916667,0.796875,0.8177083,0.8229167,0.8092784,0.8092784,0.8453608,0.8092784,0.7989691))
+
+ARR_GRASP<-ggplot(data.frame1ARR_GRASP,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="blue"),data=data.frame2ARR_GRASP)+theme(legend.position = "none")
+
+
+#----------------ILS for WDBC---------------
+data.frame1ILS_WDBC<-data.frame(a=1:5,b=c(0.971831,0.915493,0.9647887,0.9471831,0.9683099,0.9508772,0.9578947, 0.9614035,0.9684211,0.9578947))
+data.frame2ILS_WDBC<-data.frame(a=1:5,b=c(0.9964789,0.9788732,0.9894366,0.9823944,0.9823944,0.9824561,0.9859649, 0.9824561,0.9929825,0.9894737))
+
+ILS_WDBC<-ggplot(data.frame1ILS_WDBC,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="blue"),data=data.frame2ILS_WDBC)+theme(legend.position = "none")
+#----------------ILS for MOVEMENT LIBRAS--------
+data.frame1ML_ILS<-data.frame(a=1:5,b=c(0.6777778,0.65,0.7055556,0.7166667,0.7111111,0.7388889,0.7166667,0.6944444,0.7277778,0.7166667))
+data.frame2ML_ILS<-data.frame(a=1:5,b=c(0.75,0.75,0.7666667,0.7666667,0.7611111,0.7944444,0.7888889,0.7666667,0.7888889,0.7777778))
+
+ML_ILS<-ggplot(data.frame1ML_ILS,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="blue"),data=data.frame2ML_ILS)+theme(legend.position = "none")
+#---------------ILS for ARRITMIA-------------
+data.frame1ARR_ILS<-data.frame(a=1:5,b=c())
+data.frame2ARR_ILS<-data.frame(a=1:5,b=c())
+
+ARR_ILS<-ggplot(data.frame1ARR_ILS,aes(a,b))+geom_boxplot(aes(a,b,colour="red"))+geom_boxplot(aes(a,b,colour="blue"),data=data.frame2ARR_ILS)+theme(legend.position = "none")
 
 
