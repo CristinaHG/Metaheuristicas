@@ -88,6 +88,27 @@ getFeaturesForm<-function(selected,dataset){
 }
 
 
+
+myfitness<-function(selected){
+    names<-(colnames(dataset)) #get column names of dataset
+    featuresList<-lapply(seq_along(selected), function(i) { #get list with names of features selected in bit mask
+      if (selected[[i]]==1){
+        names[[i]]
+      }}) 
+    #construct formula. Predictors are fetureList elements which are not null,separated by +
+    my.formula <- paste( 'class', '~', paste(Filter(Negate(is.null), featuresList), collapse=' + ' ))
+    myf<-as.formula(my.formula)#create formula and return 
+    #return (myf)
+    
+    #Adjust3nn<-function(formula,training_data){
+    set.seed(12345)
+    modelo<-train(myf,data=dataset,method="knn",tuneGrid=expand.grid(.k=3))
+    pred<-predict(modelo,test)
+    post<-postResample(pred,test$class)
+    evalua<-post[[1]]
+    return(evalua)
+    #}
+  }
 #-----------------------function that generates neightbour by fliping a given position------------------   
    flip<-function(selected,index){
      if(selected[[index]]==1){
@@ -365,500 +386,238 @@ LocalSearchModified<-function(training,test,sIni){
 }
 
 
-#---------------------------Algorithm: Sistema de Colonias de Hormigas + BL---------------------
-  #libraries:
-  library(arules)
-  library(parallel)#do pararelly
+#---------------------------Algorithm: Memetics ---------------------
+#libraries:
+library(GA)
 
-#--------------heuristic function-------------
-HEURISTIC<-function(training,feature){
-  if(all(feature %in% 0:1)){
-    discretizedFeature<-as.factor(feature)
-  }else{
-  discretizedFeature<-discretize(feature, method = "frequency", categories=10,labels=c("A","B","C","D","E","F","G","H","I","J"))
-  }
-  Table<-table(discretizedFeature,training$class)
-  Classes<-levels(training$class)
-  nClasses<-length(unique(training$class))
-  Nfij<-length(levels(discretizedFeature))
-  heuristic<-rep(0,Nfij)
-  h<-0
+#----------------------------Executions for AM(10,0.1)-----------------------------
+#----------------------------------Para wdbc---------------------------------------
+dataset<-wdbcNormalized
+ncols<-ncol(dataset)-1
 
-  sapply(1:nClasses,function(i){
-    sapply(1:Nfij,function(j){
-      h<-((Table[j,i]/(sum(Table[j,])))*log2((Table[j,i]/(sum(Table[j,])))/((sum(Table[,i])/nrow(training))*(sum(Table[j,])/nrow(training)))))
-      if(is.nan(h)){
-        h<-0
-      }
-      heuristic[j]<<-(heuristic[j]+h)
-    })
-  })
-  return (sum(heuristic))
-}
+modelosTrainvstest <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                           popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1, pressel = 0.1,control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
 
-#------Transition Rule Function--------------
+modelosTestvsTrain <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.2,run=500,maxiter=15000,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel = 0.2,control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
 
-Transition_Rule<-function(AntSol,heur,taoCar){
-  alpha<-1
-  beta<-2
-  q<-sample(0:1,1)
-  q0<-0.8
-  selectedFeature<-0
-  probs<-0
-  pheromoneDotHeuristic<-0
-  #compute each pheromone dot heuristic
-  pheromoneDotHeuristic<-sapply(seq_along(taoCar),function(z){
-    if(AntSol[z]==0){#just if factible
-      (((taoCar[z])^alpha)*((heur[z])^beta))
-    }else{ (-Inf)}
-  })
-  #compute pheromone sum
-  pheromoneSum<-sum(pheromoneDotHeuristic)
+ReductionTrainWDBCGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstest[1,i][[1]][1,]))/ncol(wdbcNormalized))
+})                  
+
+ReductionTrainWDBCGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrain[1,i][[1]][1,]))/ncol(wdbcNormalized))
+})  
+
+
+#----------------------------------Para Movement Libras---------------------------------------
+dataset<-LibrasNormalized
+ncols<-ncol(dataset)-1
+
+modelosTrainvstestML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1, pressel = 0.1,control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+modelosTestvsTrainML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel = 0.2,control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+ReductionTrainWDBCGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTrainvstestML[1,i][[1]][1,]))/ncol(LibrasNormalized))
+})                  
+
+ReductionTrainWDBCGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTestvsTrainML[1,i][[1]][1,]))/ncol(LibrasNormalized))
+})  
+
+#---------------------------Para Arritmia----------------------------------------
+dataset<-AritmiaNormalized
+ncols<-ncol(dataset)-1
+
+modelosTrainvstestARR <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
   
-  if(q<=q0){ #if q<=q0 take the one with product is max 
-    selectedFeature<-which.max(pheromoneDotHeuristic)
-  }else{ #compute probabilities of being taken
-    probs<-sapply(seq_along(pheromoneDotHeuristic),function(j){
-      if(AntSol[j]==0){
-      probs[j]<-((pheromoneDotHeuristic[j])/(pheromoneSum))
-      }else 0
-    })
-    selectedFeature<-which.max(probs)
-    }
-  return (selectedFeature)
-}
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel = 0.2,control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
 
-#--------------------------SHC-BL algorithm---------------
-SHC_LS<-function(training,test){
-  #params initialization:
-  tao_car<-rep(10^-6,(ncol(training)-1),replace=T)
-  tao_num_car<-rep(1/(ncol(training)-1),(ncol(training)-1))
+modelosTestvsTrainARR <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
   
-  nEval<-0
-  nAnts<-10
-  featuresToSelect<-0 # vector where number of features to be taken for ant (i) is specified
-  heuristics<-0
-  #SordenList<-0
-  phi<-0.2
-  best_Global<-0
-  best_Accuracy_Global<-0
-  best_Accuracy_Global_Ini<-0
-  best_Accuracy_Actual_Ini<-0
-  Ro<-0.2
-  
-  #compute each feature heuristic
-#   no_cores <- detectCores()
-#   cl <- makeCluster(no_cores,type="FORK")
-  heuristics<-sapply(seq_along(1:(ncol(training)-1)),function(z){
-    HEURISTIC(training,training[[z]])
-  })
-  #stopCluster(cl)
-  
-  while(nEval<9000){
-    
-   # browser(expr=(nEval==6060))
-    #initially,ant solutions are empty
-    L<-lapply(seq_along(1:nAnts),function(i){
-      rep(0,(ncol(training)-1))
-    })
-    #initially no features order is considered
-#     SordenList<-lapply(seq_along(1:nAnts),function(i){
-#       rep(0,(ncol(training)-1))
-#     })
-    #maxtaoNumPheromones<-(tail(sort(tao_num_car),10))
-    tao_num_car<-dnorm(tao_num_car)
-    cummulativeProbs<-cumsum(tao_num_car)
-    
-    #selecting number of features to select by each ant
-    featuresToSelect<-sapply(seq_along(1:nAnts),function(i){
-      randomItemProb<-sample(min(cummulativeProbs):max(cummulativeProbs),1)
-      sample(which(cummulativeProbs>randomItemProb),1)
-   #   sample(which(tao_num_car==maxtaoNumPheromones[i]),1)
-    })
-    
-    #construct solutions by Ants
-      sapply(1:(ncol(training)-1),function(i){
-        sapply(1:nAnts,function(j){
-          if(i<=featuresToSelect[j]){
-            transition<-Transition_Rule(L[[j]],heuristics,tao_car)
-            #SordenList[[j]][i]<<-transition
-            L[[j]][transition]<<-1
-            #update pheromone locally
-            tao_car[transition]<<-((1-phi)*tao_car[transition]*phi*(10^-6))
-          }
-        })
-      })
-      
-      
-      #actualize tao-num-car
-      tao_num_carOld<-tao_num_car
-      
-      #compute pheromone quantify left by ant "r" in features selected 
-      solutionsCostSum<-0
-      sapply(1:nAnts,function(r){
-        solutionsCostSum<<-(solutionsCostSum+L[[r]][[4]])
-      })
-      
-      sapply(1:nAnts,function(i){
-        tao_num_car[featuresToSelect[i]]<<-((1-Ro)*tao_num_carOld[featuresToSelect[i]]+solutionsCostSum)
-      })
-      
-      
-    #apply Local Search on each ant solution
-    no_cores <- detectCores()-2
-    cl <- makeCluster(no_cores,type="FORK")
-      
-    L<-lapply(seq_along(1:length(L)),function(t){
-      LocalSearchModified(training,test,L[[t]])
-    })
-    stopCluster(cl)
-    
-    #sum local search evaluations og 3NN to total
-    nEval<-nEval+20
-    print(nEval)
-    #get best actual
-    best_Accuracy_Actual<-0
-    best_Actual<-0
-    
-    sapply(1:nAnts,function(i){
-      if(L[[i]][[3]]>best_Accuracy_Actual){
-        best_Accuracy_Actual<<-L[[i]][[3]]
-        best_Actual<<-L[[i]][[2]]
-        best_Accuracy_Actual_Ini<<-L[[i]][[4]]
-      }
-    })
-    
-    #update best Global if new best global found
-    if(best_Accuracy_Actual>best_Accuracy_Global){
-      best_Global<-best_Actual
-      best_Accuracy_Global<-best_Accuracy_Actual
-      best_Accuracy_Global_Ini<-best_Accuracy_Actual_Ini
-    }
-   
-    tao_carOld<-tao_car
-    #global pheromone update for tao-car and tao-num-car
-     sapply(1:(ncol(training)-1),function(i){ 
-      if(best_Global[i]==1){
-        tao_car[i]<<-((1-Ro)*tao_carOld[i]+(Ro*best_Accuracy_Global))
-      }
-     })
-  }
-    return(list(best_Accuracy_Global,best_Accuracy_Global_Ini,best_Global))
-}
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel = 0.2,control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+ReductionTrainARRGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestARR[1,i][[1]][1,]))/ncol(AritmiaNormalized))
+})                  
+
+ReductionTrainARRGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainARR[1,i][[1]][1,]))/ncol(AritmiaNormalized))
+}) 
 
 
 
-#--------------------------SHMM-BL algorithm---------------
-  SHMM_LS<-function(training,test){
-    #params initialization:
-    dataset<-training
-    Ro<-0.2
-    #featuresIndexes<-1:(ncol(training)-1)
-    RandomSolIni<-sample(0:1,(ncol(training)-1),replace = TRUE)
-    modeloActual<-Adjust3nn(getFeaturesForm(RandomSolIni,dataset),dataset)
-    pred<-predict(modeloActual,test)
-    post<-postResample(pred,test$class)
-    AccuracyInitial<-post[[1]]
-    best_Accuracy_Global_Ini<-AccuracyInitial
-    best_Accuracy_Actual_Ini<-AccuracyInitial
-    taoMax<-(AccuracyInitial/Ro)
-    taoMin<-(taoMax/500)
-    tao_car<-rep(taoMax,(ncol(training)-1))
-    tao_num_car<-rep(1/(ncol(training)-1),(ncol(training)-1))
-    nEval<-0
-    nAnts<-10
-    featuresToSelect<-0 # vector where number of features to be taken for ant (i) is specified
-    heuristics<-0
-    SordenList<-0
-   # phi<-0.2
-    best_Global<-0
-    best_Accuracy_Global<-0
-    
-    
-    #compute each feature heuristic
-#     no_cores <- detectCores()
-#     cl <- makeCluster(no_cores,type="FORK")
-    heuristics<-sapply(seq_along(1:(ncol(training)-1)),function(z){
-      HEURISTIC(training,training[[z]])
-    })
-    #stopCluster(cl)
-    
-    while(nEval<9000){
-      
-      #initially,ant solutions are empty
-      L<-lapply(seq_along(1:nAnts),function(i){
-        rep(0,(ncol(training)-1))
-      })
-      #initially no features order is considered
-      SordenList<-lapply(seq_along(1:nAnts),function(i){
-        rep(0,(ncol(training)-1))
-      })
-      
-      tao_num_car<-dnorm(tao_num_car)
-      cummulativeProbs<-cumsum(tao_num_car)
-      
-      #selecting number of features to select by each ant
-      featuresToSelect<-sapply(seq_along(1:nAnts),function(i){
-        randomItemProb<-sample(min(cummulativeProbs):max(cummulativeProbs),1)
-        sample(which(cummulativeProbs>randomItemProb),1)
-        #   sample(which(tao_num_car==maxtaoNumPheromones[i]),1)
-      })
-      
-      #construct solutions by Ants
-      sapply(1:(ncol(training)-1),function(i){
-        sapply(1:nAnts,function(j){
-          if(i<=featuresToSelect[j]){
-            transition<-Transition_Rule(L[[j]],heuristics,tao_car)
-            SordenList[[j]][i]<<-transition
-            L[[j]][transition]<<-1
-          }
-        })
-      })
-      
-      #apply Local Search on each ant solution
-#       no_cores <- detectCores()
-#       cl <- makeCluster(no_cores,type="FORK")
-#       
-      L<-lapply(seq_along(1:length(L)),function(t){
-        LocalSearchModified(training,test,L[[t]])
-      })
-      #stopCluster(cl)
-      
-      #sum local search evaluations on 3NN to total
-      nEval<-nEval+20
-      print(nEval)
-      #get best actual
-      best_Accuracy_Actual<-0
-      best_Actual<-0
-      
-      sapply(1:nAnts,function(i){
-        if(L[[i]][[3]]>best_Accuracy_Actual){
-          best_Accuracy_Actual<<-L[[i]][[3]]
-          best_Actual<<-L[[i]][[2]]
-          best_Accuracy_Actual_Ini<<-L[[i]][[4]]
-        }
-      })
-      
-      #update best Global if new best global found
-      if(best_Accuracy_Actual>best_Accuracy_Global){
-        best_Global<-best_Actual
-        best_Accuracy_Global<-best_Accuracy_Actual
-        best_Accuracy_Global_Ini<-best_Accuracy_Actual_Ini
-        taoMax<-(best_Accuracy_Global/Ro)
-        taoMin<-(taoMax/500)
-      }
-      
-      #actualize tao-num-car
-      tao_num_carOld<-tao_num_car
-      
-      #compute pheromone quantify left by ant "r" in features selected 
-      solutionsCostSum<-0
-      sapply(1:nAnts,function(r){
-        solutionsCostSum<<-(solutionsCostSum+L[[r]][[4]])
-      })
-      
-      sapply(1:nAnts,function(i){
-        tao_num_car[featuresToSelect[i]]<<-((1-Ro)*tao_num_carOld[featuresToSelect[i]]+solutionsCostSum)
-      })
-      
-      
-      tao_carOld<-tao_car
-      tao_num_carOld<-tao_num_car
-      #global pheromone update
-      sapply(1:(ncol(training)-1),function(i){ 
-        if(best_Global[i]==1){
-          tao_car[i]<<-((1-Ro)*tao_carOld[i]+(best_Accuracy_Global))
-          #tao_num_car[i]<<-((1-Ro)*tao_num_carOld[i]+solutionsCostSum)
-        }
-      })
-  
-  #go though tao_car to trunc the ones which exceed limits
-        sapply(seq_along(tao_car),function(t){
-          if(tao_car[t]>taoMax){
-            tao_car[t]<<-taoMax
-          }else if(tao_car[t]<taoMin){
-            tao_car[t]<<-taoMin
-          }
-        })
-    }
-    return(list(best_Accuracy_Global,best_Accuracy_Global_Ini,best_Global))
-  }
-  
 
-#----------------------------------Launching executions------------------------------------
-  # #----------------------------------Para wdbc---------------------------------------
-  modelosTrainvstest <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-    training=wdbcNormalized[indices,]
-    test=wdbcNormalized[-indices,]
-   # Solucionmodelo<-SHC_LS(training,test)
-    time<-system.time(Solucionmodelo<-SHC_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  modelosTestvsTrain <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-    test=wdbcNormalized[indices,]
-    training=wdbcNormalized[-indices,]
-    
-    time<-system.time(Solucionmodelo<-SHC_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  ReductionTrainWDBCSHC_LSSinInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(wdbcNormalized)-sum(modelosTrainvstest[1,i][[1]][[3]]))/ncol(wdbcNormalized))
-  })                  
-  
-  ReductionTrainWDBCSHC_LSInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(wdbcNormalized)-sum(modelosTestvsTrain[1,i][[1]][[3]]))/ncol(wdbcNormalized))
-  })  
-  
-  
-  # #---------for Movement Libras----------
-  Trainvstest3nnML <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
-    training=LibrasNormalized[indices,]
-    test=LibrasNormalized[-indices,]
-    
-    time<-system.time(Solucionmodelo<-SHC_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  TestvsTrain3nnML <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
-    test=LibrasNormalized[indices,]
-    training=LibrasNormalized[-indices,]
-    time<-system.time(Solucionmodelo<-SHC_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  ReductionTrainWDBCSHC_LS_ML_SinInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(LibrasNormalized)-sum(Trainvstest3nnML[1,i][[1]][[3]]))/ncol(LibrasNormalized))
-  })                  
-  
-  ReductionTrainWDBCSHC_LS_ML_Inter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(LibrasNormalized)-sum(TestvsTrain3nnML[1,i][[1]][[3]]))/ncol(LibrasNormalized))
-  })  
-  
-  #---------for Arritmia----------
-  Trainvstest3nnArr <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
-    training=AritmiaNormalized[indices,]
-    test=AritmiaNormalized[-indices,]
-    
-    time<-system.time(solution<-SHC_LS(training,test))
-    list(solution,time)
-  })
-  
-  TestvsTrain3nnArr <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
-    test=AritmiaNormalized[indices,]
-    training=AritmiaNormalized[-indices,]
-    time<-system.time(solution<-SHC_LS(training,test))
-    list(solution,time)
-  })
-  
-  ReductionTrainARRGreedySinInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(AritmiaNormalized)-sum(Trainvstest3nnArr[1,i][[1]][[3]]))/ncol(AritmiaNormalized))
-  })                  
-  
-  ReductionTrainARRGreedyInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(AritmiaNormalized)-sum(TestvsTrain3nnArr[1,i][[1]][[3]]))/ncol(AritmiaNormalized))
-  }) 
-  
-#myslh<-SHMM_LS(training,test)
-  #-------------------SHMM executions---------------------------
-  # #----------------------------------Para wdbc---------------------------------------
-  modelosTrainvstest <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-    training=wdbcNormalized[indices,]
-    test=wdbcNormalized[-indices,]
-    # Solucionmodelo<-SHC_LS(training,test)
-    time<-system.time(Solucionmodelo<-SHMM_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  modelosTestvsTrain <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
-    test=wdbcNormalized[indices,]
-    training=wdbcNormalized[-indices,]
-    
-    time<-system.time(Solucionmodelo<-SHMM_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  ReductionTrainWDBCSHC_LSSinInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(wdbcNormalized)-sum(modelosTrainvstest[1,i][[1]][[3]]))/ncol(wdbcNormalized))
-  })                  
-  
-  ReductionTrainWDBCSHC_LSInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(wdbcNormalized)-sum(modelosTestvsTrain[1,i][[1]][[3]]))/ncol(wdbcNormalized))
-  })  
-  
-  
-  # #---------for Movement Libras----------
-  Trainvstest3nnML <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
-    training=LibrasNormalized[indices,]
-    test=LibrasNormalized[-indices,]
-    
-    time<-system.time(Solucionmodelo<-SHMM_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  TestvsTrain3nnML <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
-    test=LibrasNormalized[indices,]
-    training=LibrasNormalized[-indices,]
-    time<-system.time(Solucionmodelo<-SHMM_LS(training,test))
-    list(Solucionmodelo,time)
-  })
-  
-  ReductionTrainWDBCSHC_LS_ML_SinInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(LibrasNormalized)-sum(Trainvstest3nnML[1,i][[1]][[3]]))/ncol(LibrasNormalized))
-  })                  
-  
-  ReductionTrainWDBCSHC_LS_ML_Inter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(LibrasNormalized)-sum(TestvsTrain3nnML[1,i][[1]][[3]]))/ncol(LibrasNormalized))
-  })  
-  
-  #---------for Arritmia----------
-  Trainvstest3nnArr <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
-    training=AritmiaNormalized[indices,]
-    test=AritmiaNormalized[-indices,]
-    
-    time<-system.time(solution<-SHMM_LS(training,test))
-    list(solution,time)
-  })
-  
-  TestvsTrain3nnArr <- sapply(seq_along(1:5),  function(i){
-    set.seed(i*9876543)
-    indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
-    test=AritmiaNormalized[indices,]
-    training=AritmiaNormalized[-indices,]
-    time<-system.time(solution<-SHMM_LS(training,test))
-    list(solution,time)
-  })
-  
-  ReductionTrainARRGreedySinInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(AritmiaNormalized)-sum(Trainvstest3nnArr[1,i][[1]][[3]]))/ncol(AritmiaNormalized))
-  })                  
-  
-  ReductionTrainARRGreedyInter<-lapply(seq_along(1:5),function(i){
-    100*((ncol(AritmiaNormalized)-sum(TestvsTrain3nnArr[1,i][[1]][[3]]))/ncol(AritmiaNormalized))
-  }) 
+#----------------------------Executions for AM(10,0.1*N)-----------------------------
+#----------------------------------Para wdbc---------------------------------------
+dataset<-wdbcNormalized
+ncols<-ncol(dataset)-1
+N<-10
+modelosTrainvstest <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  training=wdbcNormalized[indices,]
+  test=wdbcNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1, pressel =(0.1*N),control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+modelosTestvsTrain <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(wdbcNormalized$class, p =.50, list = FALSE)
+  test=wdbcNormalized[indices,]
+  training=wdbcNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.2,run=500,maxiter=15000,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel =(0.1*N),control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+ReductionTrainWDBCGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTrainvstest[1,i][[1]][1,]))/ncol(wdbcNormalized))
+})                  
+
+ReductionTrainWDBCGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(wdbcNormalized)-sum(modelosTestvsTrain[1,i][[1]][1,]))/ncol(wdbcNormalized))
+})  
+
+
+#----------------------------------Para Movement Libras---------------------------------------
+dataset<-LibrasNormalized
+ncols<-ncol(dataset)-1
+N<-10
+modelosTrainvstestML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  training=LibrasNormalized[indices,]
+  test=LibrasNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1, pressel =(0.1*N) ,control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+modelosTestvsTrainML <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(LibrasNormalized$class, p =.50, list = FALSE)
+  test=LibrasNormalized[indices,]
+  training=LibrasNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel =(0.1*N),control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+ReductionTrainWDBCGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTrainvstestML[1,i][[1]][1,]))/ncol(LibrasNormalized))
+})                  
+
+ReductionTrainWDBCGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(LibrasNormalized)-sum(modelosTestvsTrainML[1,i][[1]][1,]))/ncol(LibrasNormalized))
+})  
+
+#---------------------------Para Arritmia----------------------------------------
+dataset<-AritmiaNormalized
+ncols<-ncol(dataset)-1
+
+modelosTrainvstestARR <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  training=AritmiaNormalized[indices,]
+  test=AritmiaNormalized[-indices,]
+  dataset<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel =(0.1*N),control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+modelosTestvsTrainARR <- sapply(seq_along(1:5),  function(i){
+  set.seed(i*9876543)
+  indices<-createDataPartition(AritmiaNormalized$class, p =.50, list = FALSE)
+  test=AritmiaNormalized[indices,]
+  training=AritmiaNormalized[-indices,]
+  dataset<<-training
+  time<-system.time(Solucionmodelo<-ga(type = "binary",fitness =myfitness,nBits =ncols, population=gabin_Population,selection=gabin_tourSelection,crossover=gabin_uCrossover,mutation=gabin_raMutation,
+                                       popSize=10,pcrossover=0.7,pmutation=0.001,elitism=0.1,maxiter=15000,run=500,optim=TRUE,optimArgs = list(method = "L-BFGS-B", poptim = 0.1,pressel =(0.1*N),control = list( maxit = 1)))
+  )
+  list(Solucionmodelo@solution,Solucionmodelo@fitnessValue, time)
+})
+
+ReductionTrainARRGreedySinInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTrainvstestARR[1,i][[1]][1,]))/ncol(AritmiaNormalized))
+})                  
+
+ReductionTrainARRGreedyInter<-lapply(seq_along(1:5),function(i){
+  100*((ncol(AritmiaNormalized)-sum(modelosTestvsTrainARR[1,i][[1]][1,]))/ncol(AritmiaNormalized))
+}) 
+
+
+
+
+
+
   
 #----------------------------------data visualizations-----------------------------------
 library(ggplot2)
@@ -918,16 +677,16 @@ library(ggplot2)
 
 data.frame1<-data.frame(a=1:3,b=c(0.9666086,0.70055555,0.631131869))#3NN
 data.frame2<-data.frame(a=1:3,b=c(0.977592975,0.74999999,0.772104078))#GREEDY
-data.frame3<-data.frame(a=1:3,b=c(0.98171856,0.772222125,0.707279575))#SCHBL
-data.frame4<-data.frame(a=1:3,b=c(0.9648412375,0.68888888,0.695709233))#SHMM
+data.frame3<-data.frame(a=1:3,b=c(0.98978873,0.71777778,0.80625))#AM(10,0.1)
+data.frame4<-data.frame(a=1:3,b=c(0.99330985,0.91777778,0.73802083))#AM(10,0.1N)
 
 
 #globalplot<-
   ggplot(data.frame1, aes(a, b)) +
   geom_line(aes(a, b, colour = "3NN"), data = data.frame1) +
   geom_line(aes(a, b, colour = "GREEDY"), data = data.frame2) +
-  geom_line(aes(a, b, colour = "SCHBL"), data = data.frame3) +
-  geom_line(aes(a, b, colour = "SHMM"), data = data.frame4) +
+  geom_line(aes(a, b, colour = "AM(10,0.1)"), data = data.frame3) +
+  geom_line(aes(a, b, colour = "AM(10,0.1N)"), data = data.frame4) +
   scale_color_discrete(name="Algoritmos")
 
                                                                                                                                                                                                                                                                                                        
