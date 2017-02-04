@@ -1,2 +1,2 @@
-# Metaheuristicas
+# Metaheuristics
 R implementation of various Metaheuristics applyed to features selection problem. It includes : Local Search, Simulated Annealing, Tabu Search, GRASP, ILS,BMB, Ant Colony, Hibrids... 
